@@ -17,4 +17,4 @@ INCS= -I$(LUA_INC) -I$(COMPAT_DIR)
 CFLAGS= $(WARN) $(INCS)
 CC= gcc
 
-# $Id: config,v 1.1 2005/12/29 13:09:17 tomas Exp $
+# $Id: config,v 1.1.1.1 2005/12/29 13:09:17 tomas Exp $

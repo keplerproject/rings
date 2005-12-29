@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2005/12/29 13:09:17 tomas Exp $
+# $Id: Makefile,v 1.1.1.1 2005/12/29 13:09:17 tomas Exp $
 
 T= rings
 V= 1.0.0

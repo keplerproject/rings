@@ -1,6 +1,6 @@
 /*
 ** Rings
-** $Id: rings.c,v 1.1 2005/12/29 13:09:17 tomas Exp $
+** $Id: rings.c,v 1.1.1.1 2005/12/29 13:09:17 tomas Exp $
 */
 
 #include "string.h"
