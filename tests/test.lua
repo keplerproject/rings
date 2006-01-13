@@ -119,6 +119,19 @@ assert (_f1 ~= _f2, "Same file objects (io.stdout) in different states")
 local _stdout = string.gsub (tostring(io.stdout), "%D", "")
 assert (_f1 == _stdout, "Lightuserdata has changed its value when transfered to another state")
 
+-- Checking cache
+local chunk = [[return tostring(debug.getinfo(1,'f').func)]]
+local ok, f1 = S:dostring(chunk)
+local ok, f2 = S:dostring(chunk)
+local ok, f3 = S:dostring([[return tostring (debug.getinfo(1,'f').func)]])
+assert (f1 == f2, "Cache is not working")
+assert (f1 ~= f3, "Function `dostring' is producing the same function for different strings")
+S:dostring"collectgarbage(); collectgarbage()"
+local ok, f4 = S:dostring(chunk)
+assert (f4 ~= f1, "Cache is not being collected")
+local ok, f5 = S:dostring(chunk)
+assert (f4 == f5, "Cache is not working")
+
 -- Closing new state
 S:close ()
 assert2 (false, pcall (S.dostring, S, "print[[This won't work!]]"))

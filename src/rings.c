@@ -1,6 +1,6 @@
 /*
 ** Rings
-** $Id: rings.c,v 1.1 2005/12/29 13:09:17 tomas Exp $
+** $Id: rings.c,v 1.2 2006/01/13 17:16:05 tomas Exp $
 */
 
 #include "string.h"
@@ -12,6 +12,7 @@
 
 
 #define RINGS_TABLENAME "rings"
+#define RINGS_CACHE     "rings cache"
 #define STATE_METATABLE "state metatable"
 
 
@@ -95,20 +96,45 @@ static void buildargtable (lua_State *L, int n) {
 
 
 /*
+** Obtains a function which is the compiled string in the given state.
+** It also caches the resulting function to optimize future uses.
+** Leaves the compiled function on top of the stack or the error message
+** produced by luaL_loadbuffer.
+*/
+static int compile_string (lua_State *L, const char *str) {
+	lua_pushliteral (L, RINGS_CACHE);
+	lua_gettable (L, LUA_REGISTRYINDEX); /* push cache table */
+	lua_pushstring (L, str);
+	lua_gettable (L, -2); /* cache[str] */
+	if (!lua_isfunction (L, -1)) {
+		int status;
+		lua_pop (L, 1); /* remove cache[str] (= nil) from top of the stack */
+		status = luaL_loadbuffer (L, str, strlen(str), str); /* Compile */
+		if (status != 0) /* error? */
+			return status;
+		/* Stores the produced function at cache[str] */
+		lua_pushstring (L, str);
+		lua_pushvalue (L, -2);
+		lua_settable (L, -4); /* cache[str] = func */
+	}
+	lua_remove (L, -2); /* removes cache table from stack */
+	return 0;
+}
+
+
+/*
 ** Executes a string of code from State src into State dst.
 ** The arguments from src are stored into table arg; the return values are
 ** pushed onto the stack.
 ** p is the index of the first argument on the stack.
 */
 static int dostring (lua_State *dst, lua_State *src, const char *str, int p) {
-	int status = luaL_loadbuffer (dst, str, strlen(str), str); /* Compile string */
-	if (status == 0) { /* parse OK? */
+	if (compile_string (dst, str) == 0) { /* Compile OK? */
 		int base, arg_top = lua_gettop (src);
 		copy_values (dst, src, p, arg_top); /* Push arguments to dst stack */
 		buildargtable (dst, arg_top-p+1);
 		base = lua_gettop (dst);
-		status = lua_pcall (dst, 0, LUA_MULTRET, 0);
-		if (status == 0) { /* run OK? */
+		if (lua_pcall (dst, 0, LUA_MULTRET, 0) == 0) { /* run OK? */
 			int ret_top = lua_gettop (dst);
 			lua_pushboolean (src, 1); /* Push status = OK */
 			copy_values (src, dst, base, ret_top); /* Return values to src */
@@ -144,6 +170,21 @@ static int slave_dostring (lua_State *M) {
 
 
 /*
+** Creates a weak table in the registry.
+*/
+static int create_cache (lua_State *L) {
+	lua_pushliteral (L, RINGS_CACHE);
+	lua_newtable (L);
+	lua_newtable (L); /* cache metatable */
+	lua_pushliteral (L, "__mode");
+	lua_pushliteral (L, "kv");
+	lua_settable (L, -3); /* metatable.__mode = "kv" */
+	lua_setmetatable (L, -2);
+	lua_settable (L, LUA_REGISTRYINDEX);
+}
+
+
+/*
 ** Creates a new Lua State and returns an userdata that represents it.
 */
 static int state_new (lua_State *L) {
@@ -175,6 +216,8 @@ static int state_new (lua_State *L) {
 	lua_pushcclosure (s->L, master_dostring, 1);
 	lua_settable (s->L, LUA_GLOBALSINDEX);
 
+	create_cache (s->L);
+
 	return 1;
 }
 
@@ -196,7 +239,7 @@ static int slave_close (lua_State *L) {
 
 
 /*
-**
+** Creates the metatable for the state on top of the stack.
 */
 static int state_createmetatable (lua_State *L) {
 	/* State methods */
@@ -245,6 +288,7 @@ int luaopen_rings (lua_State *L) {
 	lua_pop (L, 1);
 	/* define library functions */
 	luaL_openlib (L, RINGS_TABLENAME, rings, 0);
+	create_cache (L);
 
 	return 1;
 }
