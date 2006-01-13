@@ -126,16 +126,31 @@ local ok, f2 = S:dostring(chunk)
 local ok, f3 = S:dostring([[return tostring (debug.getinfo(1,'f').func)]])
 assert (f1 == f2, "Cache is not working")
 assert (f1 ~= f3, "Function `dostring' is producing the same function for different strings")
-S:dostring"collectgarbage(); collectgarbage()"
+assert (S:dostring"collectgarbage(); collectgarbage()")
 local ok, f4 = S:dostring(chunk)
 assert (f4 ~= f1, "Cache is not being collected")
 local ok, f5 = S:dostring(chunk)
 assert (f4 == f5, "Cache is not working")
+
+-- Checking Stable
+assert (S:dostring[[require"stable"]])
+assert (type(persistent_table) == "table", "Stable could not create persistent table")
+assert (S:dostring[[stable.set("key", "value")]])
+assert (persistent_table.key == "value", "Stable could not store a value")
+assert (S:dostring[[assert(stable.get"key" == "value")]])
 
 -- Closing new state
 S:close ()
 assert2 (false, pcall (S.dostring, S, "print[[This won't work!]]"))
 collectgarbage()
 collectgarbage()
+
+-- Checking Stable's persistent table
+local NS = test_object (rings.new())
+assert (NS:dostring[[assert (loadfile ("/usr/local/share/lua/5.0/compat-5.1.lua"))()]])
+assert (NS:dostring[[require"stable"]])
+assert (type(persistent_table) == "table", "Stable persistent table was removed")
+assert (persistent_table.key == "value", "Stable key vanished")
+assert (NS:dostring[[assert(stable.get"key" == "value")]])
 
 print"Ok!"
