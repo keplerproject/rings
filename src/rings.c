@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.3 2006/01/13 18:18:55 tomas Exp $
+** $Id: rings.c,v 1.4 2006/01/16 21:52:25 tomas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -173,7 +173,7 @@ static int slave_dostring (lua_State *M) {
 /*
 ** Creates a weak table in the registry.
 */
-static int create_cache (lua_State *L) {
+static void create_cache (lua_State *L) {
 	lua_pushliteral (L, RINGS_CACHE);
 	lua_newtable (L);
 	lua_newtable (L); /* cache metatable */
