@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.4 2006/01/16 21:52:25 tomas Exp $
+** $Id: rings.c,v 1.5 2006/02/03 12:01:39 tomas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -212,7 +212,7 @@ static int state_new (lua_State *L) {
 	lua_settop (s->L, 0);
 
 	/* define dostring function (which runs strings on the master state) */
-	lua_pushliteral (s->L, "dostring");
+	lua_pushliteral (s->L, "remotedostring");
 	lua_pushlightuserdata (s->L, L);
 	lua_pushcclosure (s->L, master_dostring, 1);
 	lua_settable (s->L, LUA_GLOBALSINDEX);
