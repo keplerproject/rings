@@ -62,7 +62,7 @@ assert2 (1, _x, "Unexpected initialized variable (x = "..tostring(_x)..")")
 -- executing code in the master state from the new state
 global = 2
 local ok, _x = S:dostring[[
-	local ok, _x = dostring"return global"
+	local ok, _x = remotedostring"return global"
 	if not ok then
 		error(_x)
 	else
@@ -72,7 +72,7 @@ local ok, _x = S:dostring[[
 assert2 (true, ok, "Unexpected error: ".._x)
 assert2 (global, _x, "Unexpected error: ".._x)
 
--- new state obtaining data from the master state by using dostring
+-- new state obtaining data from the master state by using remotedostring
 f1 = function () return "funcao 1" end
 f2 = function () return "funcao 2" end
 f3 = function () return "funcao 3" end
@@ -87,7 +87,7 @@ local ok, k, i, f = S:dostring[[
 	math.randomseed(os.date"%s")
 	local key = "key"..math.random(2)
 	local i = math.random(3)
-	local ok, f = dostring("return data."..key.."["..i.."]()")
+	local ok, f = remotedostring("return data."..key.."["..i.."]()")
 	return key, i, f
 ]]
 assert2 (true, ok, "Unexpected error: "..k)

@@ -2,12 +2,12 @@
 -- Stable: State persistent table.
 --
 -- Copyright (c) 2004-2006 Kepler Project
--- $Id: stable.lua,v 1.2 2006/01/13 18:13:15 tomas Exp $
+-- $Id: stable.lua,v 1.3 2006/02/07 01:48:56 uid20013 Exp $
 ----------------------------------------------------------------------------
 
-local dostring = assert (dostring, "There is no `dostring'.  Probably not in a slave state")
+local remotedostring = assert (remotedostring, "There is no `remotedostring'.  Probably not in a slave state")
 -- creating persistent table at master state.
-assert (dostring[[persistent_table = persistent_table or {}]])
+assert (remotedostring[[persistent_table = persistent_table or {}]])
 
 module"stable"
 
@@ -18,11 +18,11 @@ _VERSION = "Stable 1.0"
 
 ----------------------------------------------------------------------------
 function get (i)
-	local ok, value = dostring ("return persistent_table[arg[1]]", i)
+	local ok, value = remotedostring ("return persistent_table[arg[1]]", i)
 	return value
 end
 
 ----------------------------------------------------------------------------
 function set (i, v)
-	dostring ("persistent_table[arg[1]] = arg[2]", i, v)
+	remotedostring ("persistent_table[arg[1]] = arg[2]", i, v)
 end
