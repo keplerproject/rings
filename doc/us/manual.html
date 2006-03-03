@@ -38,6 +38,11 @@
 				<li><a href="manual.html#introduction">Introduction</a></li>
 				<li><a href="manual.html#installation">Installation</a></li>
 				<li><a href="manual.html#reference">Reference</a></li>
+                <ul>
+				    <li><a href="manual.html#master_functions">Master functions</a></li>
+				    <li><a href="manual.html#slave_functions">Slave functions</a></li>
+				    <li><a href="manual.html#stable">Stable</a></li>
+			    </ul>
 			</ul>
 		</li>
 		<li><a href="license.html">License</a></li>
@@ -47,49 +52,78 @@
 <div id="content">
 
 <h2><a name="introduction"></a>Introduction</h2>
-<p>Rings is a simple library which allows Lua programs to create
-new Lua States.
-It also provides a very simple way to communicate between the Master State
-and the Slaves.
+<p>
+Rings is a library which provides a way to create new Lua States from within
+Lua.
+It also offers a simple way to communicate between the creator (master) and
+the created (slave) states.
+</p>
 <p>
 Rings is free software and uses the same
 <a href="license.html">license</a>
 as Lua 5.0.
 </p>
 
-<p>Rings source consists in a single C source file.
+<p>
+Rings source consists of a single C source file.
 The distribution provides a <code>Makefile</code> prepared to
 compile the library and install it. The file <code>config</code> should
-be edited to suit the needs of the aimed platform.</p>
+be edited to suit the needs of the aimed platform.
+</p>
+
+<p>
+Rings also offers Stable,
+a very simple API to manage a shared table at the master state.
+</p>
+
 
 <h2><a name="installation"></a>Installation</h2>
 
-<p>Rings library follows the
+<p>
+Rings library follows the
 <a href="http://www.keplerproject.org/compat">package model</a>
-for Lua 5.1, therefore it should be "installed". Refer to
+for Lua 5.1, therefore it should be "installed".
+Refer to
 <a href="http://www.keplerproject.org/compat/manual.html#configuration">
 Compat-5.1 configuration</a> section about how to install the compiled binary
 properly.
-The compiled binary should be copied to a directory in your LUA_CPATH.</p>
+The compiled binary should be copied to a directory in your LUA_CPATH.
+</p>
 
-<p>Windows users can use the pre-compiled versions of Rings available at
-<a href="http://luaforge.net/projects/rings/files">LuaForge</a></p>
+<p>
+Windows users can use the pre-compiled versions of Rings available at
+<a href="http://luaforge.net/projects/rings/files">LuaForge</a>
+</p>
+<p>
+The file <code>stable.lua</code> should be copied to a directory in your
+LUA_PATH.
+</p>
 
 
 <h2><a name="reference"></a>Reference</h2>
+
+<h3><a name="master_functions"></a>Master functions</h3>
 
 <p>
 Rings offers a single function which creates a new Lua state and returns
 an object representing it.
 The state which creates other states is called the master and the created
 ones, slaves.
-The master can execute code in any of its slaves but the slave can only
-do the same in the master (or in its own slaves).
+The master can execute code in any of its slaves but the slave only have
+access to its master (or in its own slaves).
 </p>
-The object representing the slave has a method (<code>dostring</code>)
+<p>
+All Lua standard libraries are opened automatically in a new state;
+other libraries have to be loaded explicitly.
+</p>
+<p>
+The object representing a slave state has a method (<code>dostring</code>)
 which can execute Lua code in the corresponding state.
 This method can receive arguments (only numbers, strings, booleans and userdata,
-which are converted to lightuserdata).
+which are converted to lightuserdata) and returns always a boolean indicating
+whether the code executed correctly or not, followed by eventual return values
+or an error message.
+</p>
 
 <dl>
     <dt><strong>rings.new ()</strong></dt>
@@ -100,7 +134,7 @@ which are converted to lightuserdata).
 
     <dt><strong><em>state</em>:dostring (string, ...)</strong></dt>
     <dd>Executes a string in the slave state.
-        The arguments are stored into <code>arg</code> table into the
+        The arguments are stored into <code>arg</code> table in the
         slave state.
         Valid types of arguments and return values are:
         number, string, boolean, nil and userdata (which are converted
@@ -110,14 +144,16 @@ which are converted to lightuserdata).
     </dd>
 </dl>
 
-<h2><a name="slave_functions"></a>Slave function</h2>
+<h3><a name="slave_functions"></a>Slave function</h3>
 
+<p>
 The following function is registered in the newly created slave state.
+</p>
 
 <dl>
     <dt><strong>remotedostring (string, ...)</strong></dt>
     <dd>Executes a string in the master state.
-        The arguments are stored into <code>arg</code> table into the
+        The arguments are stored into <code>arg</code> table in the
         master state.
         Valid types of arguments and return values are:
         number, string, boolean, nil and userdata (which are converted
@@ -127,11 +163,12 @@ The following function is registered in the newly created slave state.
     </dd>
 </dl>
 
-<h2><a name="stable"></a>Stable</h2>
+<h3><a name="stable"></a>Stable</h3>
 
 <p>
 Stable is a simple API which provides to a slave state a way to store
 and retrieve data to and from its master state.
+This library is not automatically opened in a slave state.
 </p>
 
 <dl>
@@ -151,7 +188,7 @@ and retrieve data to and from its master state.
 <div id="about">
 	<p><a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
 	<p><small>
-	$Id: manual.html,v 1.4 2006/02/07 01:51:17 uid20013 Exp $
+	$Id: manual.html,v 1.5 2006/03/03 12:41:35 tomas Exp $
 	</small></p>
 </div> <!-- id="about" -->
 
