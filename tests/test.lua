@@ -134,9 +134,9 @@ assert (f4 == f5, "Cache is not working")
 
 -- Checking Stable
 assert (S:dostring[[require"stable"]])
-assert (type(persistent_table) == "table", "Stable could not create persistent table")
+assert (type(_state_persistent_table_) == "table", "Stable could not create persistent table")
 assert (S:dostring[[stable.set("key", "value")]])
-assert (persistent_table.key == "value", "Stable could not store a value")
+assert (_state_persistent_table_.key == "value", "Stable could not store a value")
 assert (S:dostring[[assert(stable.get"key" == "value")]])
 
 -- Closing new state
@@ -149,8 +149,8 @@ collectgarbage()
 local NS = test_object (rings.new())
 assert (NS:dostring[[assert (loadfile ("/usr/local/share/lua/5.0/compat-5.1.lua"))()]])
 assert (NS:dostring[[require"stable"]])
-assert (type(persistent_table) == "table", "Stable persistent table was removed")
-assert (persistent_table.key == "value", "Stable key vanished")
+assert (type(_state_persistent_table_) == "table", "Stable persistent table was removed")
+assert (_state_persistent_table_.key == "value", "Stable key vanished")
 assert (NS:dostring[[assert(stable.get"key" == "value")]])
 
 print"Ok!"
