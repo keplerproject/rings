@@ -164,6 +164,57 @@ This library is not automatically opened in a slave state.</p>
 
 </dl>
 
+
+<h2><a name="examples"></a>Examples</h2>
+
+<p>
+The following sample shows how to execute code in another state passing
+arguments and returning values:
+</p>
+<pre class="example">
+require"rings"
+S = rings.new ()
+
+data = { 12, 13, 14, }
+print (S:dostring ([[
+aux = {}
+for i, v in ipairs (arg) do
+	table.insert (aux, 1, v)
+end
+return unpack (aux)]], unpack (data)))
+
+S:close ()
+</pre>
+
+<p>
+The following example uses Stable to store a value in the master state:
+</p>
+<pre class="example">
+require"rings"
+
+local init_cmd = [[
+LUA_PATH = "]]..package.path..[["
+require"compat-5.1"
+require"stable"]]
+
+local count_cmd = [[
+count = stable.get"shared_counter" or 0
+stable.set ("shared_counter", count + 1)
+return count
+]]
+
+S = rings.new () -- new state
+assert(S:dostring (init_cmd))
+print (S:dostring (count_cmd)) -- true, 0
+print (S:dostring (count_cmd)) -- true, 1
+S:close ()
+
+S = rings.new () -- another new state
+assert (S:dostring (init_cmd))
+print (S:dostring (count_cmd)) -- true, 2
+S:close ()
+</pre>
+
 </div> <!-- id="content" -->
 
 </div> <!-- id="main" -->
@@ -171,7 +222,7 @@ This library is not automatically opened in a slave state.</p>
 <div id="about">
 	<p><a href="http://validator.w3.org/check?uri=referer">
     <img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
-	<p><small>$Id: manual.html,v 1.7 2006/03/06 21:40:44 carregal Exp $</small></p>
+	<p><small>$Id: manual.html,v 1.8 2006/03/08 17:33:49 tomas Exp $</small></p>
 </div> <!-- id="about" -->
 
 </div> <!-- id="container" -->
