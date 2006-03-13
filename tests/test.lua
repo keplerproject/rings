@@ -80,16 +80,17 @@ data = {
 	key1 = { f1, f2, f3, },
 	key2 = { f3, f1, f2, },
 }
-local ok, k, i, f = S:dostring[[
-	assert (loadfile ("/usr/local/share/lua/5.0/compat-5.1.lua"))()
+local ok, k, i, f = S:dostring ([[
+	LUA_PATH = arg[1]
+	require"compat-5.1"
 	require"math"
 	require"os"
-	math.randomseed(os.date"%s")
+	math.randomseed(os.time())
 	local key = "key"..math.random(2)
 	local i = math.random(3)
 	local ok, f = remotedostring("return data."..key.."["..i.."]()")
 	return key, i, f
-]]
+]], package.path)
 assert2 (true, ok, "Unexpected error: "..k)
 assert2 ("string", type(k), string.format ("Wrong #1 return value (expected string, got "..type(k)..")"))
 assert2 ("number", type(i), string.format ("Wrong #2 return value (expected number, got "..type(i)..")"))
@@ -147,7 +148,10 @@ collectgarbage()
 
 -- Checking Stable's persistent table
 local NS = test_object (rings.new())
-assert (NS:dostring[[assert (loadfile ("/usr/local/share/lua/5.0/compat-5.1.lua"))()]])
+assert (NS:dostring ([[
+LUA_PATH = arg[1]
+require"compat-5.1"
+]], package.path))
 assert (NS:dostring[[require"stable"]])
 assert (type(_state_persistent_table_) == "table", "Stable persistent table was removed")
 assert (_state_persistent_table_.key == "value", "Stable key vanished")
