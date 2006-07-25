@@ -1,26 +1,24 @@
-# $Id: Makefile,v 1.1 2005/12/29 13:09:17 tomas Exp $
+# $Id: Makefile,v 1.2 2006/07/25 14:09:45 tomas Exp $
 
 T= rings
-V= 1.0.0
+V= 1.1.0
 CONFIG= ./config
 
 include $(CONFIG)
 
 SRCS= src/rings.c
-OBJS= $(COMPAT_O) src/rings.o
-COMPAT_O= $(COMPAT_DIR)/compat-5.1.o
+OBJS= src/rings.o
 
 
 src/$(LIBNAME) : $(OBJS)
-	export MACOSX_DEPLOYMENT_TARGET="10.3"; $(CC) $(CFLAGS) $(LIB_OPTION) -o src/$(LIBNAME) src/rings.o $(COMPAT_O)
-
-$(COMPAT_O): $(COMPAT_DIR)/compat-5.1.c
-	$(CC) -c $(CFLAGS) -o $@ $(COMPAT_DIR)/compat-5.1.c
+	export MACOSX_DEPLOYMENT_TARGET="10.3"; $(CC) $(CFLAGS) $(LIB_OPTION) -o src/$(LIBNAME) $(OBJS)
 
 install:
 	mkdir -p $(LUA_LIBDIR)
 	cp src/$(LIBNAME) $(LUA_LIBDIR)
 	cd $(LUA_LIBDIR); ln -f -s $(LIBNAME) $T.so
+	mkdir -p $(LUA_DIR)
+	cp src/stable.lua $(LUA_DIR)
 
 clean:
 	rm -f src/$(LIBNAME) $(OBJS)

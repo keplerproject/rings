@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.5 2006/02/03 12:01:39 tomas Exp $
+** $Id: rings.c,v 1.6 2006/07/25 14:09:45 tomas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -9,7 +9,6 @@
 #include "lua.h"
 #include "lualib.h"
 #include "lauxlib.h"
-#include "compat-5.1.h"
 
 
 #define RINGS_TABLENAME "rings"
@@ -79,24 +78,6 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
 
 
 /*
-**
-*/
-static void buildargtable (lua_State *L, int n) {
-	int t, i;
-	lua_pushliteral (L, "arg");
-	lua_newtable (L);
-	t = lua_gettop (L);
-	for (i = 1; i <= n; i++) {
-		lua_pushnumber (L, i);
-		lua_pushvalue (L, -n+(i-4));
-		lua_rawset (L, t);
-	}
-	lua_settable (L, LUA_GLOBALSINDEX);
-	lua_pop (L, n);
-}
-
-
-/*
 ** Obtains a function which is the compiled string in the given state.
 ** It also caches the resulting function to optimize future uses.
 ** Leaves the compiled function on top of the stack or the error message
@@ -111,41 +92,42 @@ static int compile_string (lua_State *L, const char *str) {
 		int status;
 		lua_pop (L, 1); /* remove cache[str] (= nil) from top of the stack */
 		status = luaL_loadbuffer (L, str, strlen(str), str); /* Compile */
-		if (status != 0) /* error? */
+		if (status != 0) { /* error? */
+			lua_remove (L, -2); /* removes cache table; leaves the error message */
 			return status;
+		}
 		/* Stores the produced function at cache[str] */
 		lua_pushstring (L, str);
 		lua_pushvalue (L, -2);
 		lua_settable (L, -4); /* cache[str] = func */
 	}
-	lua_remove (L, -2); /* removes cache table from stack */
+	lua_remove (L, -2); /* removes cache table; leaves the function */
 	return 0;
 }
 
 
 /*
 ** Executes a string of code from State src into State dst.
-** The arguments from src are stored into table arg; the return values are
-** pushed onto the stack.
-** p is the index of the first argument on the stack.
+** idx is the index of the string of code.
 */
-static int dostring (lua_State *dst, lua_State *src, const char *str, int p) {
-	if (compile_string (dst, str) == 0) { /* Compile OK? */
-		int base, arg_top = lua_gettop (src);
-		copy_values (dst, src, p, arg_top); /* Push arguments to dst stack */
-		buildargtable (dst, arg_top-p+1);
-		base = lua_gettop (dst);
-		if (lua_pcall (dst, 0, LUA_MULTRET, 0) == 0) { /* run OK? */
+static int dostring (lua_State *dst, lua_State *src, int idx) {
+	const char *str = luaL_checkstring (src, idx);
+	int base = lua_gettop (dst);
+	idx++; /* ignore first argument (string of code) */
+	if (compile_string (dst, str) == 0) { /* Compile OK? => push function */
+		int arg_top = lua_gettop (src);
+		copy_values (dst, src, idx, arg_top); /* Push arguments to dst stack */
+		if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, 0) == 0) { /* run OK? */
 			int ret_top = lua_gettop (dst);
 			lua_pushboolean (src, 1); /* Push status = OK */
-			copy_values (src, dst, base, ret_top); /* Return values to src */
-			lua_pop (dst, ret_top-base+1);
-			return 1+(ret_top-base+1); /* Return true (success) plus return values */
+			copy_values (src, dst, base+1, ret_top); /* Return values to src */
+			lua_pop (dst, ret_top-base);
+			return 1+(ret_top-base); /* Return true (success) plus return values */
 		}
 	}
 	lua_pushboolean (src, 0); /* Push status = ERR */
 	lua_pushstring (src, lua_tostring (dst, -1));
-	lua_pop (dst, 1); /* pops result from new state */
+	lua_pop (dst, 1); /* pops result from dst state */
 	return 2;
 }
 
@@ -155,8 +137,7 @@ static int dostring (lua_State *dst, lua_State *src, const char *str, int p) {
 */
 static int master_dostring (lua_State *S) {
 	lua_State *M = (lua_State *)lua_touserdata (S, lua_upvalueindex (1));
-	const char *str = luaL_checkstring (S, 1);
-	return dostring (M, S, str, 2);
+	return dostring (M, S, 1);
 }
 
 
@@ -165,8 +146,7 @@ static int master_dostring (lua_State *S) {
 */
 static int slave_dostring (lua_State *M) {
 	state_data *s = getstate (M); /* S == s->L */
-	const char *str = luaL_checkstring (M, 2);
-	return dostring (s->L, M, str, 3);
+	return dostring (s->L, M, 2);
 }
 
 
@@ -195,21 +175,8 @@ static int state_new (lua_State *L) {
 	lua_setmetatable (L, -2);
 	s->L = lua_open ();
 
-	/* load base and loadlib libraries */
-	luaopen_base (s->L);
-	lua_settop (s->L, 0);
-	luaopen_string (s->L);
-	lua_settop (s->L, 0);
-	luaopen_math (s->L);
-	lua_settop (s->L, 0);
-	luaopen_io (s->L);
-	lua_settop (s->L, 0);
-	luaopen_table (s->L);
-	lua_settop (s->L, 0);
-	luaopen_debug (s->L);
-	lua_settop (s->L, 0);
-	luaopen_loadlib (s->L);
-	lua_settop (s->L, 0);
+	/* load base libraries */
+	luaL_openlibs(s->L);
 
 	/* define dostring function (which runs strings on the master state) */
 	lua_pushliteral (s->L, "remotedostring");
@@ -285,7 +252,7 @@ static void set_info (lua_State *L) {
 	lua_pushliteral (L, "_DESCRIPTION");
 	lua_pushliteral (L, "Rings: Multiple Lua States");
 	lua_settable (L, -3);    lua_pushliteral (L, "_VERSION");
-	lua_pushliteral (L, "Rings 1.0.0");
+	lua_pushliteral (L, "Rings 1.1.0");
 	lua_settable (L, -3);
 }
 

@@ -1,10 +1,8 @@
--- $Id: sample_state.lua,v 1.1 2006/03/08 17:33:49 tomas Exp $
+-- $Id: sample_state.lua,v 1.2 2006/07/25 14:09:45 tomas Exp $
 
 require"rings"
 
 local init_cmd = [[
-LUA_PATH = "]]..package.path..[["
-require"compat-5.1"
 require"stable"]]
 
 local count_cmd = [[

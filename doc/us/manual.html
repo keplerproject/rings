@@ -36,6 +36,7 @@
 		<li><strong>Manual</strong>
 			<ul>
 				<li><a href="manual.html#introduction">Introduction</a></li>
+				<li><a href="manual.html#building">Building</a></li>
 				<li><a href="manual.html#installation">Installation</a></li>
 				<li><a href="manual.html#reference">Reference</a>
                     <ul>
@@ -68,30 +69,56 @@ the created (slave) states.</p>
 <p>Rings is free software and uses the same <a href="license.html">license</a>
 as Lua 5.0.</p>
 
-<p>Rings comprises a single C source file. The distribution provides
-a <code>Makefile</code> prepared to compile the library and install it.
-The file <code>config</code> should be edited to suit the needs of the target platform.</p>
-
 <p>Rings also offers <a href="manual.html#stable">Stable</a>,
 a very simple API to manage a shared table at the master state.</p>
 
+
+<h2><a name="building"></a>Building</h2>
+
+<p>
+Rings could be built to Lua 5.0 or to Lua 5.1.
+Version 1.0.0 is for Lua 5.0,
+while version 1.1.0 is for Lua 5.1.
+In both cases,
+the language library and header files for the desired Lua version must be
+installed properly.
+</p>
+<p>
+Rings comprises a single C source file.
+The distribution provides a
+<code>Makefile</code>
+prepared to compile the library and install it.
+The file
+<code>config</code>
+should be edited to suit the particularities of the target platform
+before running
+<code>make</code>.
+This file has some definitions like paths to the external libraries,
+compiler options and the like.
+One important definition is the Lua version,
+which is not obtained from the installed software.
+</p>
+
 <h2><a name="installation"></a>Installation</h2>
 
-<p>Rings library follows the
-<a href="http://www.keplerproject.org/compat">package model</a>
-for Lua 5.1, therefore it should be "installed". Refer to
-<a href="http://www.keplerproject.org/compat/manual.html#configuration">
-Compat-5.1 configuration</a> section about how to install the compiled binary
-properly.
-The compiled binary should be copied to a directory in your <code>LUA_CPATH</code>.
+<p>
+The compiled binary file should be copied to a directory in your
+<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.cpath">C
+path</a>.
+Lua 5.0 users should also install
+<a href="http://www.keplerproject.org/compat">Compat-5.1</a>.
 </p>
 
 <p>
 Windows users can use the precompiled versions of Rings available at
 <a href="http://luaforge.net/projects/rings/files">LuaForge</a></p>
 
-<p>The file <code>stable.lua</code> should be copied to a directory in your
-<code>LUA_PATH</code>.</p>
+<p>
+The file <code>stable.lua</code> should be copied to a directory in your
+<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.path">Lua
+path</a>.
+</p>
+
 
 <h2><a name="reference"></a>Reference</h2>
 
@@ -101,7 +128,7 @@ Windows users can use the precompiled versions of Rings available at
 an object representing it. The state which creates other states is called
 the master and the created ones are called slaves.
 The master can execute code in any of its slaves but each slave only has
-access to its master (or its own slaves).</p>
+direct access to its master (or its own slaves).</p>
 
 <p>All standard Lua libraries are opened automatically in a new state;
 other libraries have to be loaded explicitly.</p>
@@ -114,21 +141,28 @@ whether the code executed correctly or not, followed by eventual return values
 or an error message.</p>
 
 <dl>
+    <a name="rings_new"></a>
     <dt><strong>rings.new ()</strong></dt>
     <dd>Returns a newly created Lua state.</dd>
 
+    <a name="rings_close"></a>
     <dt><strong><em>state</em>:close ()</strong></dt>
     <dd>Closes the state.</dd>
 
+    <a name="rings_dostring"></a>
     <dt><strong><em>state</em>:dostring (string, ...)</strong></dt>
     <dd>Executes a string in the slave state.
-        The arguments are stored into <code>arg</code> table in the
-        slave state.
+        The arguments could be accessed exactly as in a
+        <a href="http://www.lua.org/manual/5.1/manual.html#2.5.9">vararg
+        function</a>:
+        in Lua 5.0, they are stored into the <code>arg</code> table;
+        in Lua 5.1, the expression <code>...</code> represents all arguments.
         Valid types of arguments and return values are:
         number, string, boolean, nil and userdata (which are converted
         to lightuserdata).
-        Returns a boolean indicating the status of the operation and
-        the returned values or an error message in case of error.
+        <br>
+        Returns a boolean indicating the status of the operation,
+        followed by the returned values or an error message in case of error.
     </dd>
 </dl>
 
@@ -137,15 +171,11 @@ or an error message.</p>
 <p>The following function is registered in the newly created slave state.</p>
 
 <dl>
+    <a name="rings_remotedostring"></a>
     <dt><strong>remotedostring (string, ...)</strong></dt>
     <dd>Executes a string in the master state.
-        The arguments are stored into <code>arg</code> table in the
-        master state.
-        Valid types of arguments and return values are:
-        number, string, boolean, nil and userdata (which are converted
-        to lightuserdata).
-        Returns a boolean indicating the status of the operation and
-        the returned values or an error message in case of error.
+        Behaves exactly as the method <a href="#rings_dostring">dostring</a>
+        except that it acts in the master state.
     </dd>
 </dl>
 
@@ -156,9 +186,11 @@ and retrieve data to and from its master state.
 This library is not opened automatically in a slave state.</p>
 
 <dl>
+    <a name="stable_get"></a>
     <dt><strong>stable.get (key)</strong></dt>
     <dd>Returns the value of a given <em>key</em>.</dd>
 
+    <a name="stable_set"></a>
     <dt><strong>stable.set (key, value)</strong></dt>
     <dd>Stores a <em>value</em> associated to a <em>key</em>.
         Returns nothing.</dd>
@@ -192,8 +224,8 @@ S:close ()
 require"rings"
 
 local init_cmd = [[
-LUA_PATH = "]]..package.path..[["
-require"compat-5.1"
+LUA_PATH = "]]..package.path..[["  -- only for 5.0 users
+require"compat-5.1"                -- only for 5.0 users
 require"stable"]]
 
 local count_cmd = [[
@@ -221,7 +253,7 @@ S:close ()
 <div id="about">
 	<p><a href="http://validator.w3.org/check?uri=referer">
     <img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" /></a></p>
-	<p><small>$Id: manual.html,v 1.11 2006/03/09 21:35:58 carregal Exp $</small></p>
+	<p><small>$Id: manual.html,v 1.12 2006/07/25 14:09:45 tomas Exp $</small></p>
 </div> <!-- id="about" -->
 
 </div> <!-- id="container" -->
