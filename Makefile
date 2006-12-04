@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2006/07/25 14:09:45 tomas Exp $
+# $Id: Makefile,v 1.3 2006/12/04 16:01:12 mascarenhas Exp $
 
 T= rings
 V= 1.1.0
@@ -8,7 +8,6 @@ include $(CONFIG)
 
 SRCS= src/rings.c
 OBJS= src/rings.o
-
 
 src/$(LIBNAME) : $(OBJS)
 	export MACOSX_DEPLOYMENT_TARGET="10.3"; $(CC) $(CFLAGS) $(LIB_OPTION) -o src/$(LIBNAME) $(OBJS)
