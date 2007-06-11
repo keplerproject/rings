@@ -1,8 +1,8 @@
 ----------------------------------------------------------------------------
--- Stable: State persistent table.
+-- Stable: State persistent table for Rings.
 --
--- Copyright (c) 2004-2006 Kepler Project
--- $Id: stable.lua,v 1.5 2006/07/25 14:09:45 tomas Exp $
+-- Copyright (c) 2006-2007 Kepler Project
+-- $Id: stable.lua,v 1.6 2007/06/11 23:36:37 carregal Exp $
 ----------------------------------------------------------------------------
 
 local remotedostring = assert (remotedostring, "There is no `remotedostring'.  Probably not in a slave state")
@@ -12,7 +12,7 @@ assert (remotedostring[[_state_persistent_table_ = _state_persistent_table_ or {
 module"stable"
 
 ----------------------------------------------------------------------------
-_COPYRIGHT = "Copyright (C) 2004-2006 Kepler Project"
+_COPYRIGHT = "Copyright (C) 2006-2007 Kepler Project"
 _DESCRIPTION = "State persistent table"
 _VERSION = "Stable 1.0"
 

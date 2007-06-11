@@ -124,7 +124,7 @@ local ok, f1, f2, f3 = S:dostring([[ return ..., io.stdout ]], io.stdout)
 local _f1 = tostring(f1)
 local _f2 = tostring(f2)
 assert (_f1 ~= _f2, "Same file objects (io.stdout) in different states")
-print("Falta corrigir o caso dos arquivos que mudam de valor")
+print("To do: Check the changing files problem (line 127).")
 --[[
 local _stdout = string.gsub (tostring(io.stdout), "%D", "")
 assert (_f1 == _stdout, "Lightuserdata has changed its value when transfered to another state")
