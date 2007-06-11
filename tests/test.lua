@@ -123,8 +123,9 @@ io.write(".")
 local ok, f1, f2, f3 = S:dostring([[ return ..., io.stdout ]], io.stdout)
 local _f1 = tostring(f1)
 local _f2 = tostring(f2)
-assert (_f1 ~= _f2, "Same file objects (io.stdout) in different states")
-print("To do: Check the changing files problem (line 127).")
+assert (_f1 ~= _f2, "Same file objects (io.stdout) in different states (user data objects were supposed not to be copyable")
+print("(reminder: lightuserdata copying is not being tested - line 127).")
+-- We should have a test that checks if a lightuserdata can be passed from A to B and back
 --[[
 local _stdout = string.gsub (tostring(io.stdout), "%D", "")
 assert (_f1 == _stdout, "Lightuserdata has changed its value when transfered to another state")
