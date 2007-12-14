@@ -171,4 +171,11 @@ assert (type(_state_persistent_table_) == "table", "Stable persistent table was 
 assert (_state_persistent_table_.key == "value", "Stable key vanished")
 assert (NS:dostring[[assert(stable.get"key" == "value")]])
 
+-- Checking remotedostring environment
+S = rings.new({ a = 2, b = 3, assert = assert })
+
+assert (S:dostring[[remotedostring[=[assert(a == 2)]=] ]])
+assert (S:dostring[[remotedostring[=[assert(b == 3)]=] ]])
+assert (S:dostring[[remotedostring[=[assert(print == nil)]=] ]])
+
 print"Ok!"
