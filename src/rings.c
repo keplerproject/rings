@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.8 2007/12/14 16:20:00 mascarenhas Exp $
+** $Id: rings.c,v 1.9 2007/12/14 17:57:42 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -11,19 +11,19 @@
 #include "lauxlib.h"
 
 
+#define RINGS_STATE     "rings state"
 #define RINGS_TABLENAME "rings"
-#define RINGS_CACHE     "rings cache"
 #define RINGS_ENV       "rings environment"
-#define STATE_METATABLE "state metatable"
+#define STATE_METATABLE "rings state metatable"
 
 
 typedef struct {
   lua_State *L;
 } state_data;
 
+int master;
 
 int luaopen_rings (lua_State *L);
-
 
 /*
 ** Get a State object from the first call stack position.
@@ -84,8 +84,8 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
 ** Leaves the compiled function on top of the stack or the error message
 ** produced by luaL_loadbuffer.
 */
-static int compile_string (lua_State *L, const char *str) {
-  lua_pushliteral (L, RINGS_CACHE);
+static int compile_string (lua_State *L, lua_State *src, void *cache, const char *str) {
+  lua_pushlightuserdata(L, cache);
   lua_gettable (L, LUA_REGISTRYINDEX); /* push cache table */
   lua_pushstring (L, str);
   lua_gettable (L, -2); /* cache[str] */
@@ -97,6 +97,15 @@ static int compile_string (lua_State *L, const char *str) {
       lua_remove (L, -2); /* removes cache table; leaves the error message */
       return status;
     }
+    /* Sets environment */
+    lua_pushliteral(L, RINGS_ENV);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    lua_pushlightuserdata(L, cache);
+    lua_gettable(L, -2);
+    if(!lua_isnil(L, -1)) {
+      lua_setfenv(L, -3);
+      lua_pop(L, 1);
+    } else lua_pop(L, 2);
     /* Stores the produced function at cache[str] */
     lua_pushstring (L, str);
     lua_pushvalue (L, -2);
@@ -111,21 +120,11 @@ static int compile_string (lua_State *L, const char *str) {
 ** Executes a string of code from State src into State dst.
 ** idx is the index of the string of code.
 */
-static int dostring (lua_State *dst, lua_State *src, int idx) {
+static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
   const char *str = luaL_checkstring (src, idx);
   int base = lua_gettop (dst);
   idx++; /* ignore first argument (string of code) */
-  if (compile_string (dst, str) == 0) { /* Compile OK? => push function */
-    lua_pushliteral(dst, RINGS_ENV);
-    lua_gettable(dst, LUA_REGISTRYINDEX);
-		lua_pushlightuserdata(dst, src);
-    lua_gettable(dst, -2);
-    if(!lua_isnil(dst, -1)) {
-      lua_setfenv(dst, -3);
-			lua_pop(dst, 1);
-    } else {
-      lua_pop(dst, 2);
-    }
+  if (compile_string (dst, src, cache, str) == 0) { /* Compile OK? => push function */
     int arg_top = lua_gettop (src);
     copy_values (dst, src, idx, arg_top); /* Push arguments to dst stack */
     if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, 0) == 0) { /* run OK? */
@@ -147,8 +146,12 @@ static int dostring (lua_State *dst, lua_State *src, int idx) {
 ** Executes a string of Lua code in the master state.
 */
 static int master_dostring (lua_State *S) {
-  lua_State *M = (lua_State *)lua_touserdata (S, lua_upvalueindex (1));
-  return dostring (M, S, 1);
+  lua_pushliteral(S, RINGS_STATE);
+  lua_gettable(S, LUA_REGISTRYINDEX);
+  lua_State *M = (lua_State *)lua_touserdata (S, -1);
+  lua_pop(S, 1);
+  void *C = lua_touserdata (S, lua_upvalueindex (1));
+  return dostring (M, S, C, 1);
 }
 
 
@@ -157,20 +160,22 @@ static int master_dostring (lua_State *S) {
 */
 static int slave_dostring (lua_State *M) {
   state_data *s = getstate (M); /* S == s->L */
-  return dostring (s->L, M, 2);
+  lua_pushliteral(s->L, RINGS_STATE);
+  lua_pushlightuserdata(s->L, M);
+  lua_settable(s->L, LUA_REGISTRYINDEX);
+  return dostring (s->L, M, &master, 2);
 }
 
 
 /*
 ** Creates a weak table in the registry.
 */
-static void create_cache (lua_State *L, const char *name) {
-  lua_pushstring (L, name);
+static void create_cache (lua_State *L) {
   lua_newtable (L);
   lua_newtable (L); /* cache metatable */
   lua_pushliteral (L, "__mode");
-  lua_pushliteral (L, "kv");
-  lua_settable (L, -3); /* metatable.__mode = "kv" */
+  lua_pushliteral (L, "v");
+  lua_settable (L, -3); /* metatable.__mode = "v" */
   lua_setmetatable (L, -2);
   lua_settable (L, LUA_REGISTRYINDEX);
 }
@@ -209,12 +214,17 @@ static int state_new (lua_State *L) {
 
   /* define dostring function (which runs strings on the master state) */
   lua_pushliteral (s->L, "remotedostring");
-  lua_pushlightuserdata (s->L, L);
+  lua_pushlightuserdata (s->L, s->L);
   lua_pushcclosure (s->L, master_dostring, 1);
   lua_settable (s->L, LUA_GLOBALSINDEX);
 
-  create_cache (s->L, RINGS_CACHE);
-  create_cache (s->L, RINGS_ENV);
+  /* Create caches */
+  lua_pushlightuserdata(L, s->L);
+  create_cache (L);
+  lua_pushlightuserdata(s->L, &master);
+  create_cache (s->L);
+  lua_pushliteral(s->L, RINGS_ENV);
+  create_cache (s->L);
 
   return 1;
 }
@@ -301,8 +311,8 @@ int luaopen_rings (lua_State *L) {
 	lua_pop (L, 1);
 	/* define library functions */
 	luaL_openlib (L, RINGS_TABLENAME, rings, 0);
-	create_cache (L, RINGS_CACHE);
-        create_cache (L, RINGS_ENV);
+        lua_pushliteral(L, RINGS_ENV);
+        create_cache (L);
 	set_info (L);
 
 	return 1;
