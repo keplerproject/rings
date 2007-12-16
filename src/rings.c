@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.10 2007/12/16 00:04:17 mascarenhas Exp $
+** $Id: rings.c,v 1.11 2007/12/16 00:19:14 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -187,16 +187,17 @@ static void create_cache (lua_State *L) {
 ** Creates a new Lua State and returns an userdata that represents it.
 */
 static int state_new (lua_State *L) {
+  state_data *s;
   if(lua_gettop(L) == 0) {
     lua_getglobal(L, "_M");
     if(lua_isnil(L, 1)) {
       lua_settop(L, 0);
       lua_getglobal(L, "_G");
       if(lua_isnil(L, 1))
-  lua_newtable(L);
+        lua_newtable(L);
     }
   }
-  state_data *s = (state_data *)lua_newuserdata (L, sizeof (state_data));
+  s = (state_data *)lua_newuserdata (L, sizeof (state_data));
   s->L = NULL;
   luaL_getmetatable (L, STATE_METATABLE);
   lua_setmetatable (L, -2);
