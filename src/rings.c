@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.9 2007/12/14 17:57:42 mascarenhas Exp $
+** $Id: rings.c,v 1.10 2007/12/16 00:04:17 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -146,11 +146,13 @@ static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
 ** Executes a string of Lua code in the master state.
 */
 static int master_dostring (lua_State *S) {
+  lua_State *M;
+  void *C;
   lua_pushliteral(S, RINGS_STATE);
   lua_gettable(S, LUA_REGISTRYINDEX);
-  lua_State *M = (lua_State *)lua_touserdata (S, -1);
+  M = (lua_State *)lua_touserdata (S, -1);
   lua_pop(S, 1);
-  void *C = lua_touserdata (S, lua_upvalueindex (1));
+  C = lua_touserdata (S, lua_upvalueindex (1));
   return dostring (M, S, C, 1);
 }
 
