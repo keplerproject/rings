@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.11 2007/12/16 00:19:14 mascarenhas Exp $
+** $Id: rings.c,v 1.12 2008/01/13 17:56:53 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -122,12 +122,14 @@ static int compile_string (lua_State *L, lua_State *src, void *cache, const char
 */
 static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
   const char *str = luaL_checkstring (src, idx);
+  lua_pushliteral(dst, "rings_traceback");
+  lua_gettable(dst, LUA_REGISTRYINDEX);
   int base = lua_gettop (dst);
   idx++; /* ignore first argument (string of code) */
   if (compile_string (dst, src, cache, str) == 0) { /* Compile OK? => push function */
     int arg_top = lua_gettop (src);
     copy_values (dst, src, idx, arg_top); /* Push arguments to dst stack */
-    if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, 0) == 0) { /* run OK? */
+    if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, base) == 0) { /* run OK? */
       int ret_top = lua_gettop (dst);
       lua_pushboolean (src, 1); /* Push status = OK */
       copy_values (src, dst, base+1, ret_top); /* Return values to src */
@@ -220,6 +222,14 @@ static int state_new (lua_State *L) {
   lua_pushlightuserdata (s->L, s->L);
   lua_pushcclosure (s->L, master_dostring, 1);
   lua_settable (s->L, LUA_GLOBALSINDEX);
+
+  /* fetches debug.traceback to registry */
+  lua_getglobal(s->L, "debug");
+  lua_pushliteral(s->L, "traceback");
+  lua_gettable(s->L, -2);
+  lua_pushliteral(s->L, "rings_traceback");
+  lua_pushvalue(s->L, -2);
+  lua_settable(s->L, LUA_REGISTRYINDEX);
 
   /* Create caches */
   lua_pushlightuserdata(L, s->L);
@@ -317,6 +327,19 @@ int luaopen_rings (lua_State *L) {
         lua_pushliteral(L, RINGS_ENV);
         create_cache (L);
 	set_info (L);
+
+	/* fetches debug.traceback to registry */
+	lua_getglobal(L, "debug");
+	if(!lua_isnil(L, -1)) {
+	  lua_pushliteral(L, "traceback");
+	  lua_gettable(L, -2);
+	  lua_pushliteral(L, "rings_traceback");
+	  lua_pushvalue(L, -2);
+	  lua_settable(L, LUA_REGISTRYINDEX);
+	  lua_pop(L, 2);
+	} else {
+	  lua_pop(L, 1);
+	}
 
 	return 1;
 }
