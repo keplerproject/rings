@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.12 2008/01/13 17:56:53 mascarenhas Exp $
+** $Id: rings.c,v 1.13 2008/01/14 15:28:00 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -121,10 +121,11 @@ static int compile_string (lua_State *L, lua_State *src, void *cache, const char
 ** idx is the index of the string of code.
 */
 static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
+  int base;
   const char *str = luaL_checkstring (src, idx);
   lua_pushliteral(dst, "rings_traceback");
   lua_gettable(dst, LUA_REGISTRYINDEX);
-  int base = lua_gettop (dst);
+  base = lua_gettop (dst);
   idx++; /* ignore first argument (string of code) */
   if (compile_string (dst, src, cache, str) == 0) { /* Compile OK? => push function */
     int arg_top = lua_gettop (src);
