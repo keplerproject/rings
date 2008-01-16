@@ -1,4 +1,4 @@
-# $Id: Makefile.win,v 1.5 2008/01/16 21:10:10 mascarenhas Exp $
+# $Id: Makefile.win,v 1.6 2008/01/16 21:11:03 mascarenhas Exp $
 
 include config.win
 
@@ -9,13 +9,13 @@ OBJS= src\rings.obj
 	$(CC) /c /Fo$@ $(CFLAGS) $<
 
 src\rings.dll: src\rings.obj
-	link /dll /def:src\rings.def /out:src\rings.dll $(LUA_LIB) src\rings.obj
+	link /dll /def:src\rings.def /out:src\rings.dll "$(LUA_LIB)" src\rings.obj
 
 install:
-	IF NOT EXIST $(LUA_LIBDIR) mkdir $(LUA_LIBDIR)
-	copy src\rings.dll $(LUA_LIBDIR)
-	IF NOT EXIST $(LUA_DIR) mkdir $(LUA_DIR)
-	copy src\stable.lua $(LUA_DIR)
+	IF NOT EXIST "$(LUA_LIBDIR)" mkdir "$(LUA_LIBDIR)"
+	copy src\rings.dll "$(LUA_LIBDIR)"
+	IF NOT EXIST "$(LUA_DIR)" mkdir "$(LUA_DIR)"
+	copy src\stable.lua "$(LUA_DIR)"
 
 clean:
 	del src\rings.dll src\rings.obj src\rings.lib src\rings.exp
