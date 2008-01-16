@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.16 2008/01/16 23:54:51 mascarenhas Exp $
+** $Id: rings.c,v 1.17 2008/01/16 23:56:20 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -210,14 +210,14 @@ static int state_new (lua_State *L) {
   }
   s = (state_data *)lua_newuserdata (L, sizeof (state_data));
   if(s == NULL) {
-    lua_error("rings: could not create state data"); 
+    lua_error(L, "rings: could not create state data"); 
   }
   s->L = NULL;
   luaL_getmetatable (L, STATE_METATABLE);
   lua_setmetatable (L, -2);
   s->L = lua_open ();
   if(s->L == NULL) {
-    lua_error("rings: could not create new state");
+    lua_error(L, "rings: could not create new state");
   }
 
   /* Initialize environment */
