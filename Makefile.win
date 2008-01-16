@@ -1,4 +1,4 @@
-# $Id: Makefile.win,v 1.4 2008/01/16 21:09:04 mascarenhas Exp $
+# $Id: Makefile.win,v 1.5 2008/01/16 21:10:10 mascarenhas Exp $
 
 include config.win
 
@@ -9,7 +9,7 @@ OBJS= src\rings.obj
 	$(CC) /c /Fo$@ $(CFLAGS) $<
 
 src\rings.dll: src\rings.obj
-	link /dll /def:src\rings.def /out:src\rings.dll $(LUA_LIB)
+	link /dll /def:src\rings.def /out:src\rings.dll $(LUA_LIB) src\rings.obj
 
 install:
 	IF NOT EXIST $(LUA_LIBDIR) mkdir $(LUA_LIBDIR)
