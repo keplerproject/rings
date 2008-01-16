@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.15 2008/01/16 23:24:54 mascarenhas Exp $
+** $Id: rings.c,v 1.16 2008/01/16 23:54:51 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -202,15 +202,23 @@ static int state_new (lua_State *L) {
     if(lua_isnil(L, 1)) {
       lua_settop(L, 0);
       lua_getglobal(L, "_G");
-      if(lua_isnil(L, 1))
+      if(lua_isnil(L, 1)) {
+	lua_settop(L, 0);
         lua_newtable(L);
+      }
     }
   }
   s = (state_data *)lua_newuserdata (L, sizeof (state_data));
+  if(s == NULL) {
+    lua_error("rings: could not create state data"); 
+  }
   s->L = NULL;
   luaL_getmetatable (L, STATE_METATABLE);
   lua_setmetatable (L, -2);
   s->L = lua_open ();
+  if(s->L == NULL) {
+    lua_error("rings: could not create new state");
+  }
 
   /* Initialize environment */
 
@@ -257,12 +265,16 @@ static int state_new (lua_State *L) {
 static int slave_close (lua_State *L) {
 	state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_METATABLE);
 	luaL_argcheck (L, s != NULL, 1, "not a Lua State");
-	if (s->L == NULL)
-		return 0;
-	lua_close (s->L);
-	s->L = NULL;
-	lua_pushboolean (L, 1);
-	return 1;
+	if (s->L != NULL) {
+	  lua_pushliteral(L, RINGS_ENV);
+	  lua_gettable(L, LUA_REGISTRYINDEX);
+	  lua_pushlightuserdata(L, s->L);
+	  lua_pushnil(L);
+	  lua_settable(L, -3);
+	  lua_close (s->L);
+	  s->L = NULL;
+	}
+	return 0;
 }
 
 
@@ -332,7 +344,8 @@ int luaopen_rings (lua_State *L) {
 	/* define library functions */
 	luaL_openlib (L, RINGS_TABLENAME, rings, 0);
         lua_pushliteral(L, RINGS_ENV);
-        create_cache (L);
+	lua_newtable (L);
+	lua_settable (L, LUA_REGISTRYINDEX);
 	set_info (L);
 
 	/* fetches debug.traceback to registry */
