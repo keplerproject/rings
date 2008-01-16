@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.13 2008/01/14 15:28:00 mascarenhas Exp $
+** $Id: rings.c,v 1.14 2008/01/16 23:18:30 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -15,13 +15,12 @@
 #define RINGS_TABLENAME "rings"
 #define RINGS_ENV       "rings environment"
 #define STATE_METATABLE "rings state metatable"
+#define RINGS_CACHE     "rings cache"
 
 
 typedef struct {
   lua_State *L;
 } state_data;
-
-int master;
 
 int luaopen_rings (lua_State *L);
 
@@ -85,7 +84,11 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
 ** produced by luaL_loadbuffer.
 */
 static int compile_string (lua_State *L, lua_State *src, void *cache, const char *str) {
-  lua_pushlightuserdata(L, cache);
+  if(cache == NULL) {
+    lua_pushliteral(L, RINGS_CACHE);
+  } else {
+    lua_pushlightuserdata(L, cache);
+  }
   lua_gettable (L, LUA_REGISTRYINDEX); /* push cache table */
   lua_pushstring (L, str);
   lua_gettable (L, -2); /* cache[str] */
@@ -100,7 +103,11 @@ static int compile_string (lua_State *L, lua_State *src, void *cache, const char
     /* Sets environment */
     lua_pushliteral(L, RINGS_ENV);
     lua_gettable(L, LUA_REGISTRYINDEX);
-    lua_pushlightuserdata(L, cache);
+    if(cache == NULL) {
+      lua_pushliteral(L, RINGS_CACHE);
+    } else {
+      lua_pushlightuserdata(L, cache);
+    }
     lua_gettable(L, -2);
     if(!lua_isnil(L, -1)) {
       lua_setfenv(L, -3);
@@ -168,7 +175,7 @@ static int slave_dostring (lua_State *M) {
   lua_pushliteral(s->L, RINGS_STATE);
   lua_pushlightuserdata(s->L, M);
   lua_settable(s->L, LUA_REGISTRYINDEX);
-  return dostring (s->L, M, &master, 2);
+  return dostring (s->L, M, NULL, 2);
 }
 
 
@@ -235,7 +242,7 @@ static int state_new (lua_State *L) {
   /* Create caches */
   lua_pushlightuserdata(L, s->L);
   create_cache (L);
-  lua_pushlightuserdata(s->L, &master);
+  lua_pushliteral(s->L, RINGS_CACHE);
   create_cache (s->L);
   lua_pushliteral(s->L, RINGS_ENV);
   create_cache (s->L);
