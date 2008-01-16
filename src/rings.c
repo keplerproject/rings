@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.14 2008/01/16 23:18:30 mascarenhas Exp $
+** $Id: rings.c,v 1.15 2008/01/16 23:24:54 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -63,7 +63,6 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
         lua_pushlstring (dst, string, length);
         break;
       }
-      case LUA_TUSERDATA:
       case LUA_TLIGHTUSERDATA: {
         lua_pushlightuserdata (dst, lua_touserdata (src, i));
         break;
