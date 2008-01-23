@@ -32,11 +32,12 @@ build = {
      win32 = {
         type = "make",
        	build_variables = {
-         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
+         LUA_LIB = "$(LUA_LIBDIR)\\lua5.1.lib",
          CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR)",
        	},
        	install_variables = {
          LUA_LIBDIR = "$(LIBDIR)",
+         LUA_DIR = "$(LUADIR)",
 	 BIN_DIR = "$(BINDIR)"
        	}
      }
