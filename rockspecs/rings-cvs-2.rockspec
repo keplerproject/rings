@@ -18,9 +18,27 @@ dependencies = {
    "lua >= 5.1"
 }
 build = {
-   type = "module",
-   modules = {
-     rings = "src/rings.c",
-     stable = "src/stable.lua"
-   }
+   platforms = {
+     unix = {
+        type = "make",
+       	build_variables = {
+         LIB_OPTION = "$(LIBFLAG)",
+         CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR)",
+       	},
+       	install_variables = {
+         LUA_LIBDIR = "$(LIBDIR)"
+       	}
+     },
+     win32 = {
+        type = "make",
+       	build_variables = {
+         LIB_OPTION = "$(LUA_LIBDIR)\\lua5.1.lib",
+         CFLAGS = "$(CFLAGS)",
+       	},
+       	install_variables = {
+         LUA_LIBDIR = "$(LIBDIR)",
+	 BIN_DIR = "$(BINDIR)"
+       	}
+     }
+  }
 }
