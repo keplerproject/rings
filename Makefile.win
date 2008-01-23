@@ -1,4 +1,4 @@
-# $Id: Makefile.win,v 1.9 2008/01/23 02:38:20 mascarenhas Exp $
+# $Id: Makefile.win,v 1.10 2008/01/23 02:39:28 mascarenhas Exp $
 
 include config.win
 
@@ -6,7 +6,7 @@ SRCS= src\rings.c
 OBJS= src\rings.obj
 
 .c.obj:
-	$(CC) /c /Fo$@ $(CFLAGS) /I$(LUA_INCDIR) $<
+	$(CC) /c /Fo$@ $(CFLAGS) $<
 
 all: src\rings.dll
 
