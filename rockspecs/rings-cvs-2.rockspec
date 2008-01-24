@@ -26,7 +26,8 @@ build = {
          CFLAGS = "$(CFLAGS) -I$(LUA_INCDIR)",
        	},
        	install_variables = {
-         LUA_LIBDIR = "$(LIBDIR)"
+         LUA_LIBDIR = "$(LIBDIR)",
+	 LUA_DIR = "$(LUADIR)"
        	}
      },
      win32 = {
