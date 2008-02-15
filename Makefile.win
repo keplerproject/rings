@@ -1,4 +1,4 @@
-# $Id: Makefile.win,v 1.12 2008/01/23 02:43:28 mascarenhas Exp $
+# $Id: Makefile.win,v 1.13 2008/02/15 21:33:02 carregal Exp $
 
 include config.win
 
@@ -12,7 +12,7 @@ all: src\rings.dll
 
 src\rings.dll: src\rings.obj
 	link /dll /def:src\rings.def /out:src\rings.dll "$(LUA_LIB)" src\rings.obj
-	mt -manifest src\rings.dll.manifest -outputresource:src\rings.dll;2
+	IF EXIST src\rings.dll.manifest mt -manifest src\rings.dll.manifest -outputresource:src\rings.dll;2
 
 install:
 	IF NOT EXIST "$(LUA_LIBDIR)" mkdir "$(LUA_LIBDIR)"
@@ -22,3 +22,4 @@ install:
 
 clean:
 	del src\rings.dll src\rings.obj src\rings.lib src\rings.exp
+	IF EXIST src\rings.dll.manifest del src\rings.dll.manifest
