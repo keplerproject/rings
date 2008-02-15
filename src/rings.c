@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.18 2008/01/16 23:57:14 mascarenhas Exp $
+** $Id: rings.c,v 1.19 2008/02/15 20:52:18 carregal Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -321,12 +321,12 @@ static int state_createmetatable (lua_State *L) {
 */
 static void set_info (lua_State *L) {
 	lua_pushliteral (L, "_COPYRIGHT");
-	lua_pushliteral (L, "Copyright (C) 2006-2007 Kepler Project");
+	lua_pushliteral (L, "Copyright (C) 2006 Kepler Project");
 	lua_settable (L, -3);
 	lua_pushliteral (L, "_DESCRIPTION");
 	lua_pushliteral (L, "Rings: Multiple Lua States");
 	lua_settable (L, -3);    lua_pushliteral (L, "_VERSION");
-	lua_pushliteral (L, "Rings 1.1.0");
+	lua_pushliteral (L, "Rings 1.2.0");
 	lua_settable (L, -3);
 }
 

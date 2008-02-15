@@ -1,9 +1,10 @@
-Rings 1.1 - Multiple Lua States
+Rings - Multiple Lua States
 (http://www.keplerproject.org/rings/)
 
 Overview
 
-Rings is a library which provides a way to create new Lua states from within Lua. It also offers a simple way to communicate between the creator (master) and the created (slave) states.
+Rings is a library which provides a way to create new Lua states from within Lua.
+It also offers a simple way to communicate between the creator (master) and the created (slave) states.
 
 Rings is free software and uses the same license as Lua 5.1.
 
@@ -14,22 +15,29 @@ http://luaforge.net/projects/rings/files
 
 Installation
 
-The compiled binary file should be copied to a directory in your C path.
+If you are using LuaRocks just type
+
+luarocks install rings
+
+If you prefer to install manually, the compiled binary file should be copied to a directory in your C path.
 The file stable.lua should be copied to a directory in your Lua path. 
 
 
 History
 
-Version 1.1 [11/Jun/2007]
-    Adapted to work with Lua 5.1.
-Version 1.0 [10/Mar/2006]
-    First public version, works with Lua 5.0.
+Version 1.2 [18/Feb/2008]
+* rings.new now takes an optional environment to be used by remotedostring.
+  If the environment is nil, it defaults to _M or _G.
+* Fixed bug with interaction of rings and coroutines, rings was assuming a 1:1 mapping between
+  lua_States and rings master and slave states, which is not true when coroutines/threads are involved.
+  (bug found by Ignacio Burgue√±o) 
 
 Credits
 
-Rings was designed by Roberto Ierusalimschy and Tom·s Guisasola as part of the Kepler Project. The implementation was coded by Tom·s Guisasola.
+Rings was designed by Roberto Ierusalimschy and Tomas Guisasola as part of the Kepler Project.
+The implementation was coded by Tomas Guisasola.
 
-Rings development was sponsored by F·brica Digital.
+Rings development was sponsored by Fabrica Digital.
 
 For more information please contact us (info at keplerproject dot org). Comments are welcome!
 

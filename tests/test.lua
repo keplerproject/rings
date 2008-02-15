@@ -178,4 +178,10 @@ assert (S:dostring[[remotedostring[=[assert(a == 2)]=] ]])
 assert (S:dostring[[remotedostring[=[assert(b == 3)]=] ]])
 assert (S:dostring[[remotedostring[=[assert(print == nil)]=] ]])
 
+-- Checking inherited environment
+
+local env = { msg = "Hi!"}
+local r = rings.new(env)
+r:dostring("remotedostring([[assert(msg == "Hi!", "Environment failure")]])")
+
 print"Ok!"

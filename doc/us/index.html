@@ -94,6 +94,9 @@ can also be found at the same LuaForge page.</p>
 	an optional environment to be used by
 	<a href="manual.html#rings_remotedostring"><code>remotedostring</code></a>.
 	If the environment is nil, it defaults to <code>_M or _G</code>.</li>
+	<li>Fixed a bug with interaction of rings and coroutines, rings was assuming a 1:1 mapping
+	between lua_States and rings master and slave states, which is not true when coroutines/threads are involved.
+	(bug found by Ignacio Burgue&ntilde;o)
     </ul>
     </dd>
     
@@ -128,7 +131,7 @@ Comments are welcome!</p>
 
 <div id="about">
 	<p><a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.0!</a></p>
-	<p><small>$Id: index.html,v 1.14 2008/02/15 20:45:51 carregal Exp $</small></p>
+	<p><small>$Id: index.html,v 1.15 2008/02/15 20:52:18 carregal Exp $</small></p>
 </div> <!-- id="about" -->
 
 </div> <!-- id="container" -->

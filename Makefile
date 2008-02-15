@@ -1,7 +1,7 @@
-# $Id: Makefile,v 1.4 2008/01/23 02:37:41 mascarenhas Exp $
+# $Id: Makefile,v 1.5 2008/02/15 20:52:18 carregal Exp $
 
 T= rings
-V= 1.1.0
+V= 1.2.0
 CONFIG= ./config
 
 include $(CONFIG)
