@@ -1,8 +1,7 @@
 package = "Rings"
-version = "cvs-3"
+version = "1.2.0-2"
 source = {
-   url = "cvs://:pserver:anonymous:@cvs.luaforge.net:/cvsroot/rings",
-   cvs_tag = "HEAD",
+   url = "http://luaforge.net/frs/download.php/3168/rings-1.2.0.tar.gz",
 }
 description = {
    summary = "Create new Lua states from within Lua",
@@ -34,7 +33,7 @@ build = {
         type = "make",
        	build_variables = {
          LUA_LIB = "$(LUA_LIBDIR)\\lua5.1.lib",
-         CFLAGS = "/MT $(CFLAGS) /I$(LUA_INCDIR)",
+         CFLAGS = "/MD $(CFLAGS) /I$(LUA_INCDIR)",
        	},
        	install_variables = {
          LUA_LIBDIR = "$(LIBDIR)",
