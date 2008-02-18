@@ -33,7 +33,7 @@ build = {
         type = "make",
        	build_variables = {
          LUA_LIB = "$(LUA_LIBDIR)\\lua5.1.lib",
-         CFLAGS = "$(CFLAGS) /I$(LUA_INCDIR)",
+         CFLAGS = "/MD $(CFLAGS) /I$(LUA_INCDIR)",
        	},
        	install_variables = {
          LUA_LIBDIR = "$(LIBDIR)",
