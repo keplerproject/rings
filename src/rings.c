@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.20 2008/02/27 19:22:04 carregal Exp $
+** $Id: rings.c,v 1.21 2008/03/13 20:18:05 mascarenhas Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -49,6 +49,7 @@ static int state_tostring (lua_State *L) {
 ** Copies values from State src to State dst.
 */
 static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
+  lua_checkstack(dst, top - i + 1);
   for (; i <= top; i++) {
     switch (lua_type (src, i)) {
       case LUA_TNUMBER:
@@ -231,7 +232,7 @@ static int state_new (lua_State *L) {
   lua_settable(L, -3);
   lua_pop(L, 1);
  
-  /* load base libraries */
+   /* load base libraries */
   luaL_openlibs(s->L);
 
   /* define dostring function (which runs strings on the master state) */
