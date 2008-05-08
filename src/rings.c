@@ -1,6 +1,6 @@
 /*
 ** Rings: Multiple Lua States
-** $Id: rings.c,v 1.21 2008/03/13 20:18:05 mascarenhas Exp $
+** $Id: rings.c,v 1.22 2008/05/08 22:08:31 carregal Exp $
 ** See Copyright Notice in license.html
 */
 
@@ -327,7 +327,7 @@ static void set_info (lua_State *L) {
 	lua_pushliteral (L, "_DESCRIPTION");
 	lua_pushliteral (L, "Rings: Multiple Lua States");
 	lua_settable (L, -3);    lua_pushliteral (L, "_VERSION");
-	lua_pushliteral (L, "Rings 1.2.0");
+	lua_pushliteral (L, "Rings 1.2.1");
 	lua_settable (L, -3);
 }
 

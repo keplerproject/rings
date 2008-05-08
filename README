@@ -25,12 +25,8 @@ The file stable.lua should be copied to a directory in your Lua path.
 
 History
 
-Version 1.2 [18/Feb/2008]
-* rings.new now takes an optional environment to be used by remotedostring.
-  If the environment is nil, it defaults to _M or _G.
-* Fixed bug with interaction of rings and coroutines, rings was assuming a 1:1 mapping between
-  lua_States and rings master and slave states, which is not true when coroutines/threads are involved.
-  (bug found by Ignacio Burgueño) 
+Version 1.2.1 changes:
+* Fixed bug [#2074] - Rings uses the deprecated function luaL_openlib (patch by Ignacio Burgueño)
 
 Credits
 
