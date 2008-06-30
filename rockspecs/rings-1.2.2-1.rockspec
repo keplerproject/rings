@@ -2,7 +2,7 @@ package = "Rings"
 version = "1.2.2-1"
 
 source = {
-   url = "",
+   url = "http://luaforge.net/frs/download.php/3511/rings-1.2.2.tar.gz",
 }
 
 description = {
