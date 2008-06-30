@@ -25,8 +25,8 @@ The file stable.lua should be copied to a directory in your Lua path.
 
 History
 
-Version 1.2.1 changes:
-* Fixed bug [#2074] - Rings uses the deprecated function luaL_openlib (patch by Ignacio Burgueño)
+Version 1.2.2 [30/Jun/2008]
+* Fixed a stack handling issue (bug report and patch by Shmuel Zeigerman)
 
 Credits
 
