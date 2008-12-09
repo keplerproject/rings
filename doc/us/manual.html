@@ -193,7 +193,7 @@ S = rings.new ()
 data = { 12, 13, 14, }
 print (S:dostring ([[
 aux = {}
-for i, v in ipairs (arg) do
+for i, v in ipairs ({...}) do
    table.insert (aux, 1, v)
 end
 return unpack (aux)]], unpack (data))) -- true, 14, 13, 12
@@ -233,7 +233,7 @@ S:close ()
 
 <div id="about">
 	<p><a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.0!</a></p>
-	<p><small>$Id: manual.html,v 1.16 2008/02/15 20:45:51 carregal Exp $</small></p>
+	<p><small>$Id: manual.html,v 1.17 2008/12/09 17:08:36 carregal Exp $</small></p>
 </div> <!-- id="about" -->
 
 </div> <!-- id="container" -->
