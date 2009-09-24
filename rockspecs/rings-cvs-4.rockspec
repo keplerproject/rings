@@ -1,8 +1,7 @@
 package = "Rings"
 version = "cvs-4"
 source = {
-   url = "cvs://:pserver:anonymous:@cvs.luaforge.net:/cvsroot/rings",
-   cvs_tag = "HEAD",
+   url = "git://github.com/keplerproject/rings.git"
 }
 description = {
    summary = "Create new Lua states from within Lua",
