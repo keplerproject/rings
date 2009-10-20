@@ -10,8 +10,9 @@ Rings is free software and uses the same license as Lua 5.1.
 
 Download
 
-Rings can be downloaded in source code from its LuaForge page. If you are using LuaBinaries, a Windows precompiled version of Rings can also be found at the same LuaForge page:
-http://luaforge.net/projects/rings/files
+Rings can be downloaded in source code from its Github page:
+
+http://github.com/keplerproject/rings
 
 Installation
 
@@ -22,8 +23,10 @@ luarocks install rings
 If you prefer to install manually, the compiled binary file should be copied to a directory in your C path.
 The file stable.lua should be copied to a directory in your Lua path. 
 
-
 History
+
+Version 1.2.3 [20/Oct/2009]
+* Fixing an old reference to "arg" instead of {...} - Reported by MFarm
 
 Version 1.2.2 [30/Jun/2008]
 * Fixed a stack handling issue (bug report and patch by Shmuel Zeigerman)
