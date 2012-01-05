@@ -45,35 +45,156 @@ static int state_tostring (lua_State *L) {
 }
 
 
+/* The code for copying nested tables comes from the lua-llthreads
+ * project. [1]
+ *
+ * [1] https://github.com/Neopallium/lua-llthreads */
+
+#define MAX_COPY_DEPTH  30
+
+struct copy_state {
+  lua_State  *src;
+  lua_State  *dst;
+  int  has_cache;
+  int  cache_idx;
+  int  is_arg;
+};
+
+static int
+copy_table_from_cache(struct copy_state *state, int idx)
+{
+  void  *ptr;
+
+  /* convert table to pointer for lookup in cache */
+  ptr = (void *) lua_topointer(state->src, idx);
+  if (ptr == NULL) return 0; /* can't convert pointer */
+
+  /* check if we need to create the cache */
+  if (!state->has_cache) {
+    lua_newtable(state->dst);
+    lua_replace(state->dst, state->cache_idx);
+    state->has_cache = 1;
+  }
+
+  lua_pushlightuserdata(state->dst, ptr);
+  lua_rawget(state->dst, state->cache_idx);
+  if (lua_isnil(state->dst, -1)) {
+    /* not in cache */
+    lua_pop(state->dst, 1);
+    /* create new table and add to cache */
+    lua_newtable(state->dst);
+    lua_pushlightuserdata(state->dst, ptr);
+    lua_pushvalue(state->dst, -2);
+    lua_rawset(state->dst, state->cache_idx);
+    return 0;
+  }
+
+  /* found table in cache */
+  return 1;
+}
+
+static int
+copy_one_value(struct copy_state *state, int depth, int idx)
+{
+  /* Maximum recursive depth */
+  if (++depth > MAX_COPY_DEPTH) {
+    return luaL_error(state->src, "Hit maximum copy depth (%d > %d).",
+                      depth, MAX_COPY_DEPTH);
+  }
+
+  /* only support string/number/boolean/nil/table/lightuserdata */
+  switch (lua_type(state->src, idx)) {
+    case LUA_TNUMBER:
+      lua_pushnumber(state->dst, lua_tonumber(state->src, idx));
+      break;
+    case LUA_TBOOLEAN:
+      lua_pushboolean(state->dst, lua_toboolean(state->src, idx));
+      break;
+    case LUA_TSTRING: {
+      size_t length;
+      const char *string = lua_tolstring(state->src, idx, &length);
+      lua_pushlstring(state->dst, string, length);
+      break;
+    }
+    case LUA_TLIGHTUSERDATA: {
+      lua_pushlightuserdata(state->dst, lua_touserdata(state->src, idx));
+      break;
+    }
+    case LUA_TNIL:
+      lua_pushnil(state->dst);
+      break;
+    case LUA_TTABLE:
+      /* make sure there is room on the new state for 3 values
+       * (table,key,value) */
+      if (!lua_checkstack(state->dst, 3)) {
+        return luaL_error(state->src, "To stack overflow!");
+      }
+      /* make room on from stack for key/value pairs */
+      luaL_checkstack(state->src, 2, "From stack overflow");
+
+      /* check cache for table */
+      if (copy_table_from_cache(state, idx)) {
+        /* found in cache; don't need to copy table */
+        break;
+      }
+
+      lua_pushnil(state->src);
+      while (lua_next(state->src, idx) != 0) {
+        /* key is at (top - 1), value at (top), but we need to normalize
+         * these to positive indices */
+        int kv_pos = lua_gettop(state->src);
+        /* copy key */
+        copy_one_value(state, depth, kv_pos - 1);
+        /* copy value */
+        copy_one_value(state, depth, kv_pos);
+        /* Copied key and value are now at -2 and -1 in dest */
+        lua_settable(state->dst, -3);
+        /* Pop value for next iteration */
+        lua_pop(state->src, 1);
+      }
+      break;
+
+    case LUA_TFUNCTION:
+    case LUA_TUSERDATA:
+    case LUA_TTHREAD:
+    default:
+      if (state->is_arg) {
+        return luaL_argerror
+          (state->src, idx, "function/userdata/thread types unsupported");
+      } else {
+        /* convert unsupported types to an error string */
+        lua_pushfstring(state->dst, "Unsupported value: %s: %p",
+          lua_typename(state->src, lua_type(state->src, idx)),
+          lua_topointer(state->src, idx));
+      }
+  }
+
+  return 1;
+}
+
 /*
 ** Copies values from State src to State dst.
 */
-static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
-  lua_checkstack(dst, top - i + 1);
+static void
+copy_values(lua_State *dst, lua_State *src, int i, int top, int is_arg)
+{
+  struct copy_state  state;
+  luaL_checkstack(dst, top - i + 1, "To stack overflow!");
+
+  /* setup copy state */
+  state.src = src;
+  state.dst = dst;
+  state.is_arg = is_arg;
+  state.has_cache = 0;
+  lua_pushnil(dst);
+  state.cache_idx = lua_gettop(dst);
+
   for (; i <= top; i++) {
-    switch (lua_type (src, i)) {
-      case LUA_TNUMBER:
-        lua_pushnumber (dst, lua_tonumber (src, i));
-        break;
-      case LUA_TBOOLEAN:
-        lua_pushboolean (dst, lua_toboolean (src, i));
-        break;
-      case LUA_TSTRING: {
-        const char *string = lua_tostring (src, i);
-        size_t length = lua_strlen (src, i);
-        lua_pushlstring (dst, string, length);
-        break;
-      }
-      case LUA_TLIGHTUSERDATA: {
-        lua_pushlightuserdata (dst, lua_touserdata (src, i));
-        break;
-      }
-      case LUA_TNIL:
-      default:
-        lua_pushnil (dst);
-        break;
-    }
+    copy_one_value(&state, 0, i);
   }
+
+  /* remove cache table */
+  lua_remove(dst, state.cache_idx);
 }
 
 
@@ -136,11 +257,11 @@ static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
   idx++; /* ignore first argument (string of code) */
   if (compile_string (dst, cache, str) == 0) { /* Compile OK? => push function */
     int arg_top = lua_gettop (src);
-    copy_values (dst, src, idx, arg_top); /* Push arguments to dst stack */
+    copy_values (dst, src, idx, arg_top, 1); /* Push arguments to dst stack */
     if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, base) == 0) { /* run OK? */
       int ret_top = lua_gettop (dst);
       lua_pushboolean (src, 1); /* Push status = OK */
-      copy_values (src, dst, base+1, ret_top); /* Return values to src */
+      copy_values (src, dst, base+1, ret_top, 0); /* Return values to src */
       lua_pop (dst, ret_top - base+1);
       return 1+(ret_top-base); /* Return true (success) plus return values */
     }
