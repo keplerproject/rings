@@ -1,8 +1,8 @@
 package = "Rings"
-version = "1.2.4-1"
+version = "1.3.0-1"
 
 source = {
-   url = "http://www.keplerproject.org/rings/rings-1.2.4.tar.gz",
+   url = "http://www.keplerproject.org/rings/rings-1.3.0.tar.gz",
 }
 
 description = {
