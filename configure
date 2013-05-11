@@ -6,8 +6,13 @@ fi
 
 echo "Trying to where you installed Lua..."
 
+arg="${1}"
+
 if which lua; then
   lua_bin=`which lua`
+  lua_bin_dir=`dirname $lua_bin`
+elif which ${arg}; then
+  lua_bin=`which ${arg}`
   lua_bin_dir=`dirname $lua_bin`
 else
   lua_bin=`which lua51`
