@@ -48,12 +48,11 @@
 				<li><a href="manual.html#examples">Examples</a></li>
 			</ul>
 		</li>
-        <li><a href="http://luaforge.net/projects/rings/">Project</a>
+        <li><a href="http://github.com/keplerproject/rings/">Project</a>
             <ul>
-                <li><a href="http://luaforge.net/tracker/?group_id=147">Bug Tracker</a></li>
-                <li><a href="http://luaforge.net/scm/?group_id=147">CVS</a></li>
+                <li><a href="http://github.com/keplerproject/rings/issues">Bug Tracker</a></li>
             </ul>
-        </li>
+       </li>
 		<li><a href="license.html">License</a></li>
 	</ul>
 </div> <!-- id="navigation" -->
@@ -67,7 +66,7 @@ Lua. It also offers a simple way to communicate between the creator (master) and
 the created (slave) states.</p>
 
 <p>Rings is free software and uses the same <a href="license.html">license</a>
-as Lua 5.1.</p>
+as Lua 5.1 and Lua 5.2.</p>
 
 <p>Rings also offers <a href="manual.html#stable">Stable</a>,
 a very simple API to manage a shared table at the master state.</p>
@@ -76,12 +75,12 @@ a very simple API to manage a shared table at the master state.</p>
 <h2><a name="building"></a>Building</h2>
 
 <p>
-Rings works with Lua 5.1 only. In order to build it the language library and header files
+Rings works with Lua 5.1 and Lua 5.2. In order to build it the language library and header files
 for the desired Lua version must be installed properly.
 </p>
 
 <p>
-Rings comprises a single C source file. The distribution provides a
+If you wish to install by hand, the distribution provides a
 <code>Makefile</code> prepared to compile the library and install it.
 The file <code>config</code> should be edited to suit the particularities of the target platform
 before running <code>make</code>.
