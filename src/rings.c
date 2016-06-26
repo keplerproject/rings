@@ -343,7 +343,7 @@ static void set_info (lua_State *L) {
         lua_pushliteral (L, "_DESCRIPTION");
         lua_pushliteral (L, "Rings: Multiple Lua States");
         lua_settable (L, -3);    lua_pushliteral (L, "_VERSION");
-        lua_pushliteral (L, "Rings 1.2.2");
+        lua_pushliteral (L, "Rings 1.3.0");
         lua_settable (L, -3);
 }
 
