@@ -14,7 +14,7 @@
 #define RINGS_STATE     "rings state"
 #define RINGS_TABLENAME "rings"
 #define RINGS_ENV       "rings environment"
-#define STATE_METATABLE "rings state metatable"
+#define STATE_NAME      "rings Lua state"
 #define RINGS_CACHE     "rings cache"
 
 /* default initialization for fresh states */
@@ -37,7 +37,7 @@ int luaopen_rings (lua_State *L);
 ** Get a State object from the first call stack position.
 */
 static state_data *getstate (lua_State *L) {
-  state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_METATABLE);
+  state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_NAME);
   luaL_argcheck (L, s != NULL, 1, "not a Lua State");
   luaL_argcheck (L, s->L, 1, "already closed state");
   return s;
@@ -48,7 +48,7 @@ static state_data *getstate (lua_State *L) {
 **
 */
 static int state_tostring (lua_State *L) {
-  state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_METATABLE);
+  state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_NAME);
   lua_pushfstring (L, "Lua State (%p)", s);
   return 1;
 }
@@ -224,7 +224,7 @@ static int state_new (lua_State *L) {
     lua_error(L);
   }
   s->L = NULL;
-  luaL_getmetatable (L, STATE_METATABLE);
+  luaL_getmetatable (L, STATE_NAME);
   lua_setmetatable (L, -2);
   s->L = luaL_newstate ();
   if(s->L == NULL) {
@@ -270,7 +270,7 @@ static int state_new (lua_State *L) {
 ** Returns `true' in case of success; `nil' when the state was already closed.
 */
 static int slave_close (lua_State *L) {
-        state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_METATABLE);
+        state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_NAME);
         luaL_argcheck (L, s != NULL, 1, "not a Lua State");
         if (s->L != NULL) {
           lua_getfield(L, LUA_REGISTRYINDEX, RINGS_ENV);
@@ -295,7 +295,7 @@ static int state_createmetatable (lua_State *L) {
                 {NULL, NULL},
         };
         /* State metatable */
-        if (!luaL_newmetatable (L, STATE_METATABLE)) {
+        if (!luaL_newmetatable (L, STATE_NAME)) {
                 return 0;
         }
         /* define methods */
