@@ -1,9 +1,9 @@
-#!/usr/local/bin/lua5.1
+#!/usr/bin/env lua
 
 ---------------------------------------------------------------------
 -- checks for a value and throw an error if it is invalid.
 ---------------------------------------------------------------------
-function assert2 (expected, value, msg)
+local function assert2 (expected, value, msg)
         if not msg then
                 msg = ''
         else
@@ -15,20 +15,20 @@ function assert2 (expected, value, msg)
 end
 
 ---------------------------------------------------------------------
--- object test.
+-- State object test.
 ---------------------------------------------------------------------
-local objmethods = { "close", "dostring", }
-function test_object (obj)
+local statemethods = { "close", "dostring", }
+local function test_state (obj)
         -- checking object type.
         assert2 (true, type(obj) == "userdata" or type(obj) == "table", "incorrect object type")
         -- trying to get metatable.
         assert2 ("You're not allowed to get the metatable of a Lua State",
                 getmetatable(obj), "error permitting access to object's metatable")
         -- trying to set metatable.
-        assert2 (false, pcall (setmetatable, S, {}))
+        assert2 (false, pcall (setmetatable, obj, {}))
         -- checking existence of object's methods.
-        for i = 1, #objmethods do
-                local method = obj[objmethods[i]]
+        for i = 1, #statemethods do
+                local method = obj[statemethods[i]]
                 assert2 ("function", type(method))
                 assert2 (false, pcall (method), "no 'self' parameter accepted")
         end
@@ -37,11 +37,12 @@ end
 
 ---------------------------------------------------------------------
 ---------------------------------------------------------------------
-require"rings"
+local rings = require"rings"
+local unpack = table.unpack or unpack
 
 print(rings._VERSION)
 
-S = test_object (rings.new())
+local S = test_state (rings.new())
 S:dostring([[pcall(require, "luarocks.require")]])
 
 -- How to handle errors on another Lua State?
@@ -56,7 +57,7 @@ assert2 (true, ok, "Error while returning a value ("..tostring(_x)..")")
 assert2 (nil, _x, "Unexpected initialized variable (x = "..tostring(_x)..")")
 -- setting a value
 io.write(".")
-assert2 (nil, x, "I need an unitialized varible to do the test!")
+assert2 (nil, x, "I need an uninitialized variable to do the test!")
 S:dostring"x = 1"
 assert2 (nil, x, "Changing original Lua State instead of the new one!")
 -- obtaining a value from the new state
@@ -81,9 +82,9 @@ assert2 (global, _x, "Unexpected error: "..tostring(_x).." (status == "..tostrin
 
 -- new state obtaining data from the master state by using remotedostring
 io.write(".")
-f1 = function () return "funcao 1" end
-f2 = function () return "funcao 2" end
-f3 = function () return "funcao 3" end
+f1 = function () return "function 1" end
+f2 = function () return "function 2" end
+f3 = function () return "function 3" end
 data = {
         key1 = { f1, f2, f3, },
         key2 = { f3, f1, f2, },
@@ -107,6 +108,7 @@ assert2 (f, data[k][i](), "Wrong #3 return value")
 io.write(".")
 local data = { 12, 13, 14, 15, }
 local cmd = string.format ([[
+local unpack = table.unpack or unpack
 local arg = { ... }
 assert (type(arg) == "table")
 assert (arg[1] == %d)
@@ -121,7 +123,7 @@ for i, v in ipairs (data) do
         assert2 (v, _data[i])
 end
 
--- Transfering userdata
+-- Transferring userdata
 io.write(".")
 local ok, f1, f2, f3 = S:dostring([[ return ..., io.stdout ]], io.stdout)
 assert ((not f1) and (not f2), "Same file objects (io.stdout) in different states (user data objects were supposed not to be copyable")
@@ -157,7 +159,7 @@ collectgarbage()
 
 -- Checking Stable's persistent table
 io.write(".")
-local NS = test_object (rings.new())
+local NS = test_state (rings.new())
 assert (NS:dostring ([[
 pcall(require, "luarocks.require")
 package.path = ...
