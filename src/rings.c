@@ -25,7 +25,6 @@
 #  define luaL_setfuncs(L,l,n) luaL_register(L,NULL,l)
 #else
 #  define lua_setfenv(L,i) lua_setupvalue(L, i, 1)
-#  define lua_strlen(L,i)  lua_rawlen(L, (i))
 #endif
 
 typedef struct {
@@ -69,8 +68,8 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
         lua_pushboolean (dst, lua_toboolean (src, i));
         break;
       case LUA_TSTRING: {
-        const char *string = lua_tostring (src, i);
-        size_t length = lua_strlen (src, i);
+        size_t length;
+        const char *string = lua_tolstring (src, i, &length);
         lua_pushlstring (dst, string, length);
         break;
       }
