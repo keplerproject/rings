@@ -107,8 +107,7 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
     lua_pushlightuserdata(L, cache);
   }
   lua_gettable (L, LUA_REGISTRYINDEX); /* push cache table */
-  lua_pushstring (L, str);
-  lua_gettable (L, -2); /* cache[str] */
+  lua_getfield (L, -1, str); /* cache[str] */
   if (!lua_isfunction (L, -1)) {
     int status;
     lua_pop (L, 1); /* remove cache[str] (= nil) from top of the stack */
@@ -118,8 +117,7 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
       return status;
     }
     /* Sets environment */
-    lua_pushliteral(L, RINGS_ENV);
-    lua_gettable(L, LUA_REGISTRYINDEX);
+    lua_getfield(L, LUA_REGISTRYINDEX, RINGS_ENV);
     if(cache == NULL) {
       lua_pushliteral(L, RINGS_CACHE);
     } else {
@@ -131,9 +129,8 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
       lua_pop(L, 1);
     } else lua_pop(L, 2);
     /* Stores the produced function at cache[str] */
-    lua_pushstring (L, str);
-    lua_pushvalue (L, -2);
-    lua_settable (L, -4); /* cache[str] = func */
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -3, str);
   }
   lua_remove (L, -2); /* removes cache table; leaves the function */
   return 0;
@@ -147,8 +144,7 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
 static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
   int base;
   const char *str = luaL_checkstring (src, idx);
-  lua_pushliteral(dst, "rings_traceback");
-  lua_gettable(dst, LUA_REGISTRYINDEX);
+  lua_getfield(dst, LUA_REGISTRYINDEX, "rings_traceback");
   base = lua_gettop (dst);
   idx++; /* ignore first argument (string of code) */
   if (compile_string (dst, cache, str) == 0) { /* Compile OK? => push function */
@@ -175,8 +171,7 @@ static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
 static int master_dostring (lua_State *S) {
   lua_State *M;
   void *C;
-  lua_pushliteral(S, RINGS_STATE);
-  lua_gettable(S, LUA_REGISTRYINDEX);
+  lua_getfield(S, LUA_REGISTRYINDEX, RINGS_STATE);
   M = (lua_State *)lua_touserdata (S, -1);
   lua_pop(S, 1);
   C = lua_touserdata (S, lua_upvalueindex (1));
@@ -189,9 +184,8 @@ static int master_dostring (lua_State *S) {
 */
 static int slave_dostring (lua_State *M) {
   state_data *s = getstate (M); /* S == s->L */
-  lua_pushliteral(s->L, RINGS_STATE);
   lua_pushlightuserdata(s->L, M);
-  lua_settable(s->L, LUA_REGISTRYINDEX);
+  lua_setfield(s->L, LUA_REGISTRYINDEX, RINGS_STATE);
   return dostring (s->L, M, NULL, 2);
 }
 
@@ -202,9 +196,8 @@ static int slave_dostring (lua_State *M) {
 static void create_cache (lua_State *L) {
   lua_newtable (L);
   lua_newtable (L); /* cache metatable */
-  lua_pushliteral (L, "__mode");
   lua_pushliteral (L, "v");
-  lua_settable (L, -3); /* metatable.__mode = "v" */
+  lua_setfield (L, -2, "__mode"); /* metatable.__mode = "v" */
   lua_setmetatable (L, -2);
   lua_settable (L, LUA_REGISTRYINDEX);
 }
@@ -242,8 +235,7 @@ static int state_new (lua_State *L) {
 
   /* Initialize environment */
 
-  lua_pushliteral(L, RINGS_ENV);
-  lua_gettable(L, LUA_REGISTRYINDEX);
+  lua_getfield(L, LUA_REGISTRYINDEX, RINGS_ENV);
   lua_pushlightuserdata(L, s->L);
   lua_pushvalue(L, 1);
   lua_settable(L, -3);
@@ -259,11 +251,8 @@ static int state_new (lua_State *L) {
 
   /* fetches debug.traceback to registry */
   lua_getglobal(s->L, "debug");
-  lua_pushliteral(s->L, "traceback");
-  lua_gettable(s->L, -2);
-  lua_pushliteral(s->L, "rings_traceback");
-  lua_pushvalue(s->L, -2);
-  lua_settable(s->L, LUA_REGISTRYINDEX);
+  lua_getfield(s->L, -1, "traceback");
+  lua_setfield(s->L, LUA_REGISTRYINDEX, "rings_traceback");
 
   /* Create caches */
   lua_pushlightuserdata(L, s->L);
@@ -285,8 +274,7 @@ static int slave_close (lua_State *L) {
         state_data *s = (state_data *)luaL_checkudata (L, 1, STATE_METATABLE);
         luaL_argcheck (L, s != NULL, 1, "not a Lua State");
         if (s->L != NULL) {
-          lua_pushliteral(L, RINGS_ENV);
-          lua_gettable(L, LUA_REGISTRYINDEX);
+          lua_getfield(L, LUA_REGISTRYINDEX, RINGS_ENV);
           lua_pushlightuserdata(L, s->L);
           lua_pushnil(L);
           lua_settable(L, -3);
@@ -314,21 +302,17 @@ static int state_createmetatable (lua_State *L) {
         /* define methods */
         luaL_setfuncs(L, methods, 0);
         /* define metamethods */
-        lua_pushliteral (L, "__gc");
         lua_pushcfunction (L, slave_close);
-        lua_settable (L, -3);
+        lua_setfield (L, -2, "__gc");
 
-        lua_pushliteral (L, "__index");
-        lua_pushvalue (L, -2);
-        lua_settable (L, -3);
+        lua_pushvalue (L, -1);
+        lua_setfield (L, -2, "__index");
 
-        lua_pushliteral (L, "__tostring");
         lua_pushcfunction (L, state_tostring);
-        lua_settable (L, -3);
+        lua_setfield (L, -2, "__tostring");
 
-        lua_pushliteral (L, "__metatable");
         lua_pushliteral (L, "You're not allowed to get the metatable of a Lua State");
-        lua_settable (L, -3);
+        lua_setfield (L, -2, "__metatable");
         return 1;
 }
 
@@ -337,14 +321,12 @@ static int state_createmetatable (lua_State *L) {
 **
 */
 static void set_info (lua_State *L) {
-        lua_pushliteral (L, "_COPYRIGHT");
         lua_pushliteral (L, "Copyright (C) 2006 Kepler Project");
-        lua_settable (L, -3);
-        lua_pushliteral (L, "_DESCRIPTION");
+        lua_setfield (L, -2, "_COPYRIGHT");
         lua_pushliteral (L, "Rings: Multiple Lua States");
-        lua_settable (L, -3);    lua_pushliteral (L, "_VERSION");
+        lua_setfield (L, -2, "_DESCRIPTION");
         lua_pushliteral (L, "Rings 1.3.0");
-        lua_settable (L, -3);
+        lua_setfield (L, -2, "_VERSION");
 }
 
 
@@ -365,23 +347,17 @@ int luaopen_rings (lua_State *L) {
         luaL_newlib(L, rings);
         lua_pushvalue(L, -1);
         lua_setglobal(L, RINGS_TABLENAME);
-        lua_pushliteral(L, RINGS_ENV);
         lua_newtable (L);
-        lua_settable (L, LUA_REGISTRYINDEX);
+        lua_setfield (L, LUA_REGISTRYINDEX, RINGS_ENV);
         set_info (L);
 
         /* fetches debug.traceback to registry */
         lua_getglobal(L, "debug");
         if(!lua_isnil(L, -1)) {
-          lua_pushliteral(L, "traceback");
-          lua_gettable(L, -2);
-          lua_pushliteral(L, "rings_traceback");
-          lua_pushvalue(L, -2);
-          lua_settable(L, LUA_REGISTRYINDEX);
-          lua_pop(L, 2);
-        } else {
-          lua_pop(L, 1);
+          lua_getfield(L, -1, "traceback");
+          lua_setfield(L, LUA_REGISTRYINDEX, "rings_traceback");
         }
+        lua_pop(L, 1);
 
         return 1;
 }
