@@ -47,7 +47,9 @@ S:dostring([[pcall(require, "luarocks.require")]])
 
 -- How to handle errors on another Lua State?
 
-assert2 (false, S:dostring"bla()")
+local ok, err = S:dostring"bla()"
+assert2 (false, ok, "Unexpected success")
+assert2 ("stack traceback", err:match"stack traceback", "Unexpected error without traceback: "..tostring(err))
 assert2 (false, S:dostring"bla(")
 assert2 (true, S:dostring"print'Hello World!'")
 -- Checking returning value
