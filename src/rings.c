@@ -27,6 +27,10 @@
 #  define lua_setfenv(L,i) lua_setupvalue(L, i, 1)
 #endif
 
+#if LUA_VERSION_NUM < 503
+#  define lua_isinteger(L, i) ((void) (L), (void) (i), 0)
+#endif
+
 typedef struct {
   lua_State *L;
 } state_data;
@@ -62,7 +66,11 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
   for (; i <= top; i++) {
     switch (lua_type (src, i)) {
       case LUA_TNUMBER:
-        lua_pushnumber (dst, lua_tonumber (src, i));
+        if (lua_isinteger(src, i)) {
+          lua_pushinteger(dst, lua_tointeger(src, i));
+        } else {
+          lua_pushnumber(dst, lua_tonumber(src, i));
+        }
         break;
       case LUA_TBOOLEAN:
         lua_pushboolean (dst, lua_toboolean (src, i));
