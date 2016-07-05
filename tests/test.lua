@@ -95,9 +95,9 @@ local ok, k, i, f = S:dostring ([[
         require"math"
         require"os"
         math.randomseed(os.time())
-        local key = "key"..math.random(2)
+        local key = "key"..tostring(math.random(2))
         local i = math.random(3)
-        local ok, f = remotedostring("return data."..key.."["..i.."]()")
+        local ok, f = remotedostring("return data."..key.."["..tostring(i).."]()")
         return key, i, f
 ]], package.path)
 assert2 (true, ok, "Unexpected error: "..k)
