@@ -2,7 +2,7 @@
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <title>Rings: Multiple Lua States</title>
+    <title>Rings Manual</title>
     <link rel="stylesheet" href="doc.css" type="text/css"/>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 </head>
@@ -11,7 +11,7 @@
 <div id="container">
 
 <div id="product">
-	<div id="product_logo"><a href="http://www.keplerproject.org">
+	<div id="product_logo"><a href="https://keplerproject.github.io/rings/">
 		<img alt="Rings logo" src="rings.png"/>
 	</a></div>
 	<div id="product_name"><big><strong>Rings</strong></big></div>
@@ -30,7 +30,6 @@
 				<li><a href="index.html#download">Download</a></li>
 				<li><a href="index.html#history">History</a></li>
 				<li><a href="index.html#credits">Credits</a></li>
-				<li><a href="index.html#contact">Contact us</a></li>
 			</ul>
 		</li>
 		<li><strong>Manual</strong>
@@ -48,9 +47,9 @@
 				<li><a href="manual.html#examples">Examples</a></li>
 			</ul>
 		</li>
-        <li><a href="http://github.com/keplerproject/rings/">Project</a>
+        <li><a href="https://github.com/keplerproject/rings/">Project</a>
             <ul>
-                <li><a href="http://github.com/keplerproject/rings/issues">Bug Tracker</a></li>
+                <li><a href="https://github.com/keplerproject/rings/issues">Bug Tracker</a></li>
             </ul>
        </li>
 		<li><a href="license.html">License</a></li>
@@ -66,7 +65,7 @@ Lua. It also offers a simple way to communicate between the creator (master) and
 the created (slave) states.</p>
 
 <p>Rings is free software and uses the same <a href="license.html">license</a>
-as Lua 5.1 and Lua 5.2.</p>
+as Lua 5.x (MIT).</p>
 
 <p>Rings also offers <a href="manual.html#stable">Stable</a>,
 a very simple API to manage a shared table at the master state.</p>
@@ -75,7 +74,7 @@ a very simple API to manage a shared table at the master state.</p>
 <h2><a name="building"></a>Building</h2>
 
 <p>
-Rings works with Lua 5.1 and Lua 5.2. In order to build it the language library and header files
+Rings works with Lua 5.1, 5.2, 5.3, and LuaJIT. In order to build it the language library and header files
 for the desired Lua version must be installed properly.
 </p>
 
@@ -102,9 +101,9 @@ luarocks install rings
 
 <p>
 If you prefer to install manually, the compiled binary file should be copied to a directory in your
-<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.cpath">C path</a>.
+<a href="http://www.lua.org/manual/5.3/manual.html#pdf-package.cpath">C path</a>.
 The file <code>stable.lua</code> should be copied to a directory in your
-<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.path">Lua path</a>.
+<a href="http://www.lua.org/manual/5.3/manual.html#pdf-package.path">Lua path</a>.
 </p>
 
 <h2><a name="reference"></a>Reference</h2>
@@ -139,7 +138,7 @@ or an error message.</p>
     <dt><strong><a name="rings_dostring"></a><em>state</em>:dostring (string, ...)</strong></dt>
     <dd>Executes a string in the slave state.
         The arguments could be accessed exactly as in a
-        <a href="http://www.lua.org/manual/5.1/manual.html#2.5.9">vararg
+        <a href="http://www.lua.org/manual/5.3/manual.html#3.4.11">vararg
         function</a>. Valid types of arguments and return values are:
         number, string, boolean, nil and userdata (which are converted
         to lightuserdata).
@@ -186,44 +185,44 @@ This library is not opened automatically in a slave state.</p>
 arguments and returning values:</p>
 
 <pre class="example">
-require"rings"
-S = rings.new ()
+local rings = require "rings"
 
-data = { 12, 13, 14, }
-print (S:dostring ([[
-aux = {}
-for i, v in ipairs ({...}) do
-   table.insert (aux, 1, v)
-end
-return unpack (aux)]], unpack (data))) -- true, 14, 13, 12
+local code = [[
+   local args_reversed = {}
 
-S:close ()
+   for _, value in ipairs({...}) do
+      table.insert(args_reversed, 1, value)
+   end
+
+   return table.unpack(args_reversed)
+]]
+
+local state = rings.new()
+print(state:dostring(code, 1, 2, 3)) -- true, 3, 2, 1
+state:close()
 </pre>
 
 <p>The following example uses Stable to store a value in the master state:</p>
 
 <pre class="example">
-require"rings"
+local rings = require "rings"
 
-local init_cmd = [[
-require"stable"]]
+local code = [[
+   local stable = require "stable"
 
-local count_cmd = [[
-count = stable.get"shared_counter" or 0
-stable.set ("shared_counter", count + 1)
-return count
+   local count = stable.get("shared_counter") or 0
+   stable.set("shared_counter", count + 1)
+   return count
 ]]
 
-S = rings.new () -- new state
-assert(S:dostring (init_cmd))
-print (S:dostring (count_cmd)) -- true, 0
-print (S:dostring (count_cmd)) -- true, 1
-S:close ()
+local state = rings.new()
+print(state:dostring(code)) -- true, 0
+print(state:dostring(code)) -- true, 1
+state:close()
 
-S = rings.new () -- another new state
-assert (S:dostring (init_cmd))
-print (S:dostring (count_cmd)) -- true, 2
-S:close ()
+local another_state = rings.new()
+print(another_state:dostring(code)) -- true, 2
+another_state:close()
 </pre>
 
 </div> <!-- id="content" -->
@@ -231,8 +230,7 @@ S:close ()
 </div> <!-- id="main" -->
 
 <div id="about">
-	<p><a href="http://validator.w3.org/check?uri=referer">Valid XHTML 1.0!</a></p>
-	<p><small>$Id: manual.html,v 1.17 2008/12/09 17:08:36 carregal Exp $</small></p>
+	<p><a href="https://validator.w3.org/check?uri=referer">Valid XHTML 1.0!</a></p>
 </div> <!-- id="about" -->
 
 </div> <!-- id="container" -->
