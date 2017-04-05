@@ -190,7 +190,7 @@ r:dostring([==[remotedostring([[assert(msg == "Hi!", "Environment failure")]])]=
 -- Test dostring with bytecode
 io.write(".")
 local function bytecode(code)
-    local chunk = assert(loadstring(code))
+    local chunk = assert((loadstring or load)(code))
     return string.dump(chunk)
 end
 
