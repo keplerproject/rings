@@ -74,7 +74,7 @@ a very simple API to manage a shared table at the master state.</p>
 <h2><a name="building"></a>Building</h2>
 
 <p>
-Rings works with Lua 5.1 and Lua 5.2. In order to build it the language library and header files
+Rings works with Lua 5.1, 5.2, 5.3, and LuaJIT. In order to build it the language library and header files
 for the desired Lua version must be installed properly.
 </p>
 
@@ -101,9 +101,9 @@ luarocks install rings
 
 <p>
 If you prefer to install manually, the compiled binary file should be copied to a directory in your
-<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.cpath">C path</a>.
+<a href="http://www.lua.org/manual/5.3/manual.html#pdf-package.cpath">C path</a>.
 The file <code>stable.lua</code> should be copied to a directory in your
-<a href="http://www.lua.org/manual/5.1/manual.html#pdf-package.path">Lua path</a>.
+<a href="http://www.lua.org/manual/5.3/manual.html#pdf-package.path">Lua path</a>.
 </p>
 
 <h2><a name="reference"></a>Reference</h2>
@@ -138,7 +138,7 @@ or an error message.</p>
     <dt><strong><a name="rings_dostring"></a><em>state</em>:dostring (string, ...)</strong></dt>
     <dd>Executes a string in the slave state.
         The arguments could be accessed exactly as in a
-        <a href="http://www.lua.org/manual/5.1/manual.html#2.5.9">vararg
+        <a href="http://www.lua.org/manual/5.3/manual.html#3.4.11">vararg
         function</a>. Valid types of arguments and return values are:
         number, string, boolean, nil and userdata (which are converted
         to lightuserdata).
