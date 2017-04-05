@@ -107,7 +107,7 @@ static void copy_values (lua_State *dst, lua_State *src, int i, int top) {
 ** Leaves the compiled function on top of the stack or the error message
 ** produced by luaL_loadbuffer.
 */
-static int compile_string (lua_State *L, void *cache, const char *str) {
+static int compile_string (lua_State *L, void *cache, const char *str, size_t str_len) {
   if(cache == NULL) {
     lua_pushliteral(L, RINGS_CACHE);
   } else {
@@ -118,7 +118,7 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
   if (!lua_isfunction (L, -1)) {
     int status;
     lua_pop (L, 1); /* remove cache[str] (= nil) from top of the stack */
-    status = luaL_loadbuffer (L, str, strlen(str), str); /* Compile */
+    status = luaL_loadbuffer (L, str, str_len, str); /* Compile */
     if (status != 0) { /* error? */
       lua_remove (L, -2); /* removes cache table; leaves the error message */
       return status;
@@ -136,9 +136,9 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
       lua_pop(L, 1);
     } else lua_pop(L, 2);
     /* Stores the produced function at cache[str] */
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -3, str);
-  }
+    lua_pushlstring (L, str, str_len);
+    lua_pushvalue (L, -2);
+    lua_settable (L, -4); /* cache[str] = func */  }
   lua_remove (L, -2); /* removes cache table; leaves the function */
   return 0;
 }
@@ -150,11 +150,12 @@ static int compile_string (lua_State *L, void *cache, const char *str) {
 */
 static int dostring (lua_State *dst, lua_State *src, void *cache, int idx) {
   int base;
-  const char *str = luaL_checkstring (src, idx);
+  size_t str_len;
+  const char *str = luaL_checklstring (src, idx, &str_len);
   lua_getfield(dst, LUA_REGISTRYINDEX, "rings_traceback");
   base = lua_gettop (dst);
   idx++; /* ignore first argument (string of code) */
-  if (compile_string (dst, cache, str) == 0) { /* Compile OK? => push function */
+  if (compile_string (dst, cache, str, str_len) == 0) { /* Compile OK? => push function */
     int arg_top = lua_gettop (src);
     copy_values (dst, src, idx, arg_top); /* Push arguments to dst stack */
     if (lua_pcall (dst, arg_top-idx+1, LUA_MULTRET, base) == 0) { /* run OK? */
