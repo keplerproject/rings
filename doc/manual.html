@@ -185,44 +185,44 @@ This library is not opened automatically in a slave state.</p>
 arguments and returning values:</p>
 
 <pre class="example">
-require"rings"
-S = rings.new ()
+local rings = require "rings"
 
-data = { 12, 13, 14, }
-print (S:dostring ([[
-aux = {}
-for i, v in ipairs ({...}) do
-   table.insert (aux, 1, v)
-end
-return unpack (aux)]], unpack (data))) -- true, 14, 13, 12
+local code = [[
+   local args_reversed = {}
 
-S:close ()
+   for _, value in ipairs({...}) do
+      table.insert(args_reversed, 1, value)
+   end
+
+   return table.unpack(args_reversed)
+]]
+
+local state = rings.new()
+print(state:dostring(code, 1, 2, 3)) -- true, 3, 2, 1
+state:close()
 </pre>
 
 <p>The following example uses Stable to store a value in the master state:</p>
 
 <pre class="example">
-require"rings"
+local rings = require "rings"
 
-local init_cmd = [[
-require"stable"]]
+local code = [[
+   local stable = require "stable"
 
-local count_cmd = [[
-count = stable.get"shared_counter" or 0
-stable.set ("shared_counter", count + 1)
-return count
+   local count = stable.get("shared_counter") or 0
+   stable.set("shared_counter", count + 1)
+   return count
 ]]
 
-S = rings.new () -- new state
-assert(S:dostring (init_cmd))
-print (S:dostring (count_cmd)) -- true, 0
-print (S:dostring (count_cmd)) -- true, 1
-S:close ()
+local state = rings.new()
+print(state:dostring(code)) -- true, 0
+print(state:dostring(code)) -- true, 1
+state:close()
 
-S = rings.new () -- another new state
-assert (S:dostring (init_cmd))
-print (S:dostring (count_cmd)) -- true, 2
-S:close ()
+local another_state = rings.new()
+print(another_state:dostring(code)) -- true, 2
+another_state:close()
 </pre>
 
 </div> <!-- id="content" -->
