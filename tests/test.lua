@@ -172,6 +172,7 @@ assert (_state_persistent_table_.key == "value", "Stable key vanished")
 assert (NS:dostring[[assert(stable.get"key" == "value")]])
 
 -- Checking remotedostring environment
+io.write(".")
 S = rings.new({ a = 2, b = 3, assert = assert })
 S:dostring([[pcall(require, "luarocks.require")]])
 
@@ -180,10 +181,23 @@ assert (S:dostring[[remotedostring[=[assert(b == 3)]=] ]])
 assert (S:dostring[[remotedostring[=[assert(print == nil)]=] ]])
 
 -- Checking inherited environment
-
+io.write(".")
 local env = { msg = "Hi!"}
 local r = rings.new(env)
 r:dostring([[pcall(require, "luarocks.require")]])
 r:dostring([==[remotedostring([[assert(msg == "Hi!", "Environment failure")]])]==])
+
+-- Test dostring with bytecode
+io.write(".")
+local function bytecode(code)
+    local chunk = assert(loadstring(code))
+    return string.dump(chunk)
+end
+
+local rr = rings.new()
+local _, v1 = assert(rr:dostring(bytecode[[return 1]]))
+assert(v1 == 1)
+local _, v2 = assert(rr:dostring(bytecode[[return 'abc']]))
+assert(v2 == "abc")
 
 print"Ok!"
